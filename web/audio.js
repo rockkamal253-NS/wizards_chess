@@ -10,14 +10,15 @@ export class CathedralAudio {
   init() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      this.ctx = new AudioCtx();
+      if (AudioCtx) this.ctx = new AudioCtx();
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume();
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
   }
 
   playSelect() {
     if (this.muted) return;
     this.init();
+    if (!this.ctx) return;
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const g = this.ctx.createGain();
@@ -34,6 +35,7 @@ export class CathedralAudio {
   playSlide() {
     if (this.muted) return;
     this.init();
+    if (!this.ctx) return;
     const now = this.ctx.currentTime;
     const len = Math.floor(this.ctx.sampleRate * 0.32);
     const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
@@ -57,6 +59,7 @@ export class CathedralAudio {
   playShatter() {
     if (this.muted) return;
     this.init();
+    if (!this.ctx) return;
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const oGain = this.ctx.createGain();

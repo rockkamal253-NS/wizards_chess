@@ -107,6 +107,8 @@ export function clearSelection() {
   state.selectedSq = null;
   state.validMoves = [];
   state.hintMove = null;
+  state.pendingPromotion = null;
+  if (dom.promoModal) dom.promoModal.classList.remove('visible');
 }
 
 export function undoMove() {

@@ -4,7 +4,15 @@ import { renderer, scene, camera } from './materials.js';
 import { buildCathedral } from './cathedral.js';
 import { initBoard, syncBoardFull, rebuildTacticalMarkers, spawnShatter } from './board.js';
 import { buildPieceMesh } from './pieces.js';
-import { initInput, triggerAI, showTacticalHint, handleSquareClick } from './input.js';
+import {
+  initInput,
+  triggerAI,
+  showTacticalHint,
+  handleSquareClick,
+  selectPromotion,
+  showPromotionDialog,
+  hidePromotionDialog
+} from './input.js';
 import {
   updateHUD,
   applyShadowQuality,
@@ -228,11 +236,9 @@ function bindUIEvents() {
     btn.addEventListener('click', () => setSide(btn.dataset.side));
   });
 
-  document.querySelectorAll('#promo-group .md-chip').forEach(btn => {
+  document.querySelectorAll('#promo-modal .promo-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('#promo-group .md-chip').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.promoPiece = btn.dataset.promo;
+      selectPromotion(btn.dataset.promo);
     });
   });
 
@@ -262,6 +268,9 @@ requestAnimationFrame(animate);
 window.__state = state;
 window.state = state;
 window.handleSquareClick = handleSquareClick;
+window.selectPromotion = selectPromotion;
+window.showPromotionDialog = showPromotionDialog;
+window.hidePromotionDialog = hidePromotionDialog;
 window.setCameraPreset = setCameraPreset;
 window.flipCamera = flipCamera;
 window.showTacticalHint = showTacticalHint;
@@ -282,3 +291,4 @@ Object.defineProperty(window, 'targetDist', {
   set: v => { state.targetDist = v; },
   configurable: true
 });
+

@@ -37,13 +37,6 @@
         <button class="md-chip" data-side="b">Black</button>
       </div>
 
-      <div class="seg-pill" id="promo-group">
-        <span class="seg-label">Promote</span>
-        <button class="md-chip active" data-promo="q" title="Queen">♕</button>
-        <button class="md-chip" data-promo="n" title="Knight">♘</button>
-        <button class="md-chip" data-promo="r" title="Rook">♖</button>
-        <button class="md-chip" data-promo="b" title="Bishop">♗</button>
-      </div>
 
       <div class="seg-pill">
         <span class="seg-label">View</span>
@@ -130,6 +123,21 @@
     </div>
   </div>
 </div>
+
+<!-- PROMOTION MODAL -->
+<div class="modal-backdrop" id="promo-modal">
+  <div class="modal-card">
+    <div class="modal-title">PAWN PROMOTION</div>
+    <div class="modal-sub">Choose a piece for your ascending pawn:</div>
+    <div class="modal-actions promo-actions">
+      <button class="modal-btn promo-btn" data-promo="q">♕ Queen</button>
+      <button class="modal-btn promo-btn" data-promo="n">♘ Knight</button>
+      <button class="modal-btn promo-btn" data-promo="r">♖ Rook</button>
+      <button class="modal-btn promo-btn" data-promo="b">♗ Bishop</button>
+    </div>
+  </div>
+</div>
+
 <script type="module" src="main.js"></script>
 </body>
 </html>

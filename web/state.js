@@ -17,6 +17,7 @@ export const state = {
   isAnimating: false,
   activeAnim: null,
   pointerState: null,
+  pendingPromotion: null,
   resetArmedUntil: 0,
 
   // Camera / View state

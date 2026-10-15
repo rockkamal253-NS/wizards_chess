@@ -89,14 +89,51 @@ export function onBoardClick(clientX, clientY, camera) {
   if (sq) handleSquareClick(sq);
 }
 
+export function showPromotionDialog() {
+  if (dom.promoModal) {
+    dom.promoModal.classList.add('visible');
+  }
+}
+
+export function hidePromotionDialog() {
+  if (dom.promoModal) {
+    dom.promoModal.classList.remove('visible');
+  }
+}
+
+export function cancelPromotion() {
+  state.pendingPromotion = null;
+  hidePromotionDialog();
+  rebuildTacticalMarkers();
+}
+
+export function selectPromotion(piece) {
+  if (!state.pendingPromotion) return;
+  const { from, to } = state.pendingPromotion;
+  state.pendingPromotion = null;
+  hidePromotionDialog();
+  executeMoveAnimated(from, to, piece || 'q');
+}
+
 export function handleSquareClick(sq) {
+  if (state.pendingPromotion) return;
   state.hintMove = null;
   const vm = state.validMoves.find(m => m.to === sq);
   if (vm) {
+    const p = state.game.get(vm.from);
+    const isPawnPromotion = p && p.type === 'p' && (vm.to[1] === '8' || vm.to[1] === '1');
+    if (isPawnPromotion) {
+      state.pendingPromotion = { from: vm.from, to: vm.to };
+      state.selectedSq = null;
+      state.validMoves = [];
+      rebuildTacticalMarkers();
+      showPromotionDialog();
+      return;
+    }
     state.selectedSq = null;
     state.validMoves = [];
     rebuildTacticalMarkers();
-    executeMoveAnimated(vm.from, vm.to, state.promoPiece);
+    executeMoveAnimated(vm.from, vm.to, state.promoPiece || 'q');
     return;
   }
 

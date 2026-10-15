@@ -234,4 +234,8 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
 .modal-btn.secondary:hover { background: rgba(255, 255, 255, 0.18); }
+.promo-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
+.promo-btn { font-size: 1.05rem; padding: 14px 20px; transition: transform 0.12s, box-shadow 0.12s; }
+.promo-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(226, 184, 87, 0.35); }
 .md-chip:focus-visible, .modal-btn:focus-visible { outline: 2px solid var(--md-gold); outline-offset: 1px; }
+

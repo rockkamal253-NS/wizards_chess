@@ -23,7 +23,7 @@ export const dom = {
   get telemetry() { return document.getElementById('telemetry'); },
   get aiGroup() { return document.getElementById('ai-group'); },
   get sideGroup() { return document.getElementById('side-group'); },
-  get promoGroup() { return document.getElementById('promo-group'); },
+  get promoModal() { return document.getElementById('promo-modal'); },
   get btnCamWhite() { return document.getElementById('btn-cam-white'); },
   get btnCamAngle() { return document.getElementById('btn-cam-angle'); },
   get btnCamTop() { return document.getElementById('btn-cam-top'); },
