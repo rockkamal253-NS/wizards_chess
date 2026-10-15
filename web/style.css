@@ -1,0 +1,237 @@
+:root {
+    --md-surface: rgba(14, 12, 20, 0.84);
+    --md-surface-high: rgba(28, 24, 38, 0.90);
+    --md-outline: rgba(218, 180, 95, 0.26);
+    --md-primary: #D0BCFF;
+    --md-primary-container: #553A99;
+    --md-gold: #F2C96D;
+    --md-crimson: #FF4D64;
+    --md-emerald: #2CE58B;
+    --md-text: #F4EFFA;
+    --md-muted: #9E94B0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  html, body {
+    width: 100vw; height: 100vh; overflow: hidden;
+    background: #07060B; color: var(--md-text);
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  #gl-canvas {
+    position: fixed; inset: 0; width: 100vw; height: 100vh;
+    display: block; z-index: 1; cursor: grab;
+  }
+  #gl-canvas.pointer-piece { cursor: pointer; }
+
+  /* Single-Level Material Design 3 HUD */
+  .hud-root {
+    position: fixed; inset: 0; z-index: 10;
+    pointer-events: none;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 14px 18px;
+    gap: 12px;
+  }
+
+  /* Compact Single-Row Top Command Bar */
+  .top-bar {
+    pointer-events: auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: nowrap;
+    background: var(--md-surface);
+    backdrop-filter: blur(22px) saturate(165%);
+    border: 1px solid var(--md-outline);
+    border-radius: 14px;
+    padding: 8px 16px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  .brand-cluster { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+  .brand-title {
+    font-family: 'Cinzel', 'Trajan Pro', 'Palatino Linotype', Georgia, serif; font-weight: 800; font-size: 1.05rem;
+    letter-spacing: 0.08em;
+    background: linear-gradient(135deg, #FFF7DC 0%, #E2B857 55%, #B38218 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .turn-badge {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 12px; border-radius: 999px;
+    background: var(--md-surface-high);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em;
+  }
+  .turn-badge.in-check {
+    border-color: var(--md-crimson);
+    background: rgba(180, 20, 45, 0.35);
+    color: #FFD9DE;
+    box-shadow: 0 0 16px rgba(255, 77, 100, 0.45);
+  }
+  .turn-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--md-gold);
+    box-shadow: 0 0 8px var(--md-gold);
+  }
+
+  .nav-clusters {
+    display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; overflow-x: auto;
+  }
+  .seg-pill {
+    display: flex; align-items: center; gap: 2px;
+    background: rgba(8, 7, 13, 0.72);
+    padding: 3px; border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    white-space: nowrap;
+  }
+  .seg-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--md-muted); padding: 0 6px; font-weight: 700;
+  }
+  .md-chip {
+    pointer-events: auto; cursor: pointer;
+    border: none; outline: none;
+    background: transparent; color: var(--md-text);
+    font-family: inherit; font-size: 0.74rem; font-weight: 600;
+    padding: 5px 10px; border-radius: 7px;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .md-chip:hover { background: rgba(255, 255, 255, 0.10); }
+  .md-chip.active {
+    background: var(--md-primary-container);
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(110, 75, 210, 0.48);
+  }
+  .md-chip.accent:hover { color: var(--md-gold); }
+
+  /* Middle Side Docks (Combatant Cards & Move Ledger) */
+  .middle-area {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none;
+  }
+  .side-dock {
+    pointer-events: auto;
+    width: 228px;
+    background: var(--md-surface);
+    backdrop-filter: blur(18px);
+    border: 1px solid var(--md-outline);
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .faction-card {
+    padding: 8px 10px; border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .faction-card.active-turn {
+    border-color: rgba(242, 201, 109, 0.55);
+    background: rgba(242, 201, 109, 0.07);
+  }
+  .faction-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em;
+  }
+  .adv-pill {
+    font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.68rem; padding: 1px 6px; border-radius: 5px;
+    background: rgba(242, 201, 109, 0.18); color: var(--md-gold);
+  }
+  .captured-tray {
+    min-height: 20px; margin-top: 4px;
+    font-size: 0.92rem; letter-spacing: 1px;
+    color: var(--md-muted); word-break: break-all;
+  }
+  .eval-bar-wrap {
+    height: 6px; width: 100%; border-radius: 99px;
+    background: #241F32; overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .eval-bar-fill {
+    height: 100%; width: 50%;
+    background: linear-gradient(90deg, #F5E6C4, #E2B857);
+    transition: width 0.35s ease;
+  }
+  .hover-readout {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.72rem; color: var(--md-muted);
+    padding-top: 4px; border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  /* Right Move Ledger Dock */
+  .ledger-title {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--md-muted);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .ledger-scroll {
+    max-height: 175px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 3px;
+    font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace; font-size: 0.74rem;
+    padding-right: 4px;
+  }
+  .ledger-scroll::-webkit-scrollbar { width: 4px; }
+  .ledger-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 4px; }
+  .ledger-row {
+    display: grid; grid-template-columns: 32px 1fr 1fr;
+    padding: 3px 6px; border-radius: 5px;
+    background: rgba(255, 255, 255, 0.025);
+  }
+  .ledger-row span:first-child { color: var(--md-muted); }
+
+  /* Bottom Status & Hotkey Strip */
+  .bottom-bar {
+    pointer-events: auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    background: var(--md-surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--md-outline);
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-size: 0.75rem; color: var(--md-muted);
+  }
+  .kbd-tag {
+    font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace; font-size: 0.68rem;
+    padding: 2px 6px; border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08); color: var(--md-text);
+    margin: 0 2px;
+  }
+  .telemetry {
+    font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace; font-size: 0.73rem;
+    color: var(--md-gold); white-space: nowrap;
+  }
+
+  /* Victory / Endgame Modal Overlay */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(7, 6, 12, 0.76);
+    backdrop-filter: blur(12px);
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-backdrop.visible { display: flex; }
+  .modal-card {
+    background: var(--md-surface-high);
+    border: 1px solid var(--md-gold);
+    border-radius: 20px; padding: 28px 36px;
+    text-align: center; max-width: 420px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+  }
+  .modal-title {
+    font-family: 'Cinzel', 'Trajan Pro', 'Palatino Linotype', Georgia, serif; font-size: 1.5rem; font-weight: 800;
+    color: var(--md-gold); margin-bottom: 8px;
+  }
+  .modal-sub { font-size: 0.9rem; color: var(--md-text); margin-bottom: 20px; }
+  .modal-btn {
+    cursor: pointer; border: none;
+    background: linear-gradient(135deg, #E2B857, #B38218);
+    color: #09080E; font-weight: 800; font-size: 0.88rem;
+    padding: 10px 24px; border-radius: 10px;
+  }
+
+.modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.modal-btn.secondary {
+  background: rgba(255, 255, 255, 0.10); color: var(--md-text);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.modal-btn.secondary:hover { background: rgba(255, 255, 255, 0.18); }
+.md-chip:focus-visible, .modal-btn:focus-visible { outline: 2px solid var(--md-gold); outline-offset: 1px; }

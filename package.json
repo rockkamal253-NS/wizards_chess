@@ -1,0 +1,7 @@
+{
+  "name": "wizards-chess",
+  "private": true,
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\""
+  }
+}

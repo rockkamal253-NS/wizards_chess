@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wizard's Chess — Gothic Cathedral</title>
+<link rel="stylesheet" href="style.css">
+<script src="vendor/three.min.js"></script>
+<script src="vendor/chess.js"></script>
+</head>
+<body>
+<canvas id="gl-canvas"></canvas>
+
+<div class="hud-root">
+  <!-- SINGLE-LEVEL TOP COMMAND BAR -->
+  <div class="top-bar">
+    <div class="brand-cluster">
+      <div class="brand-title">WIZARD'S CHESS</div>
+      <div class="turn-badge" id="turn-badge">
+        <span class="turn-dot" id="turn-dot"></span>
+        <span id="status-text">MARBLE ORDER (WHITE)</span>
+      </div>
+    </div>
+
+    <div class="nav-clusters">
+      <div class="seg-pill" id="ai-group">
+        <span class="seg-label">AI</span>
+        <button class="md-chip" data-depth="1">Novice</button>
+        <button class="md-chip active" data-depth="2">Adept</button>
+        <button class="md-chip" data-depth="3">Master</button>
+        <button class="md-chip" data-depth="0">2P</button>
+      </div>
+
+      <div class="seg-pill" id="side-group">
+        <span class="seg-label">You</span>
+        <button class="md-chip active" data-side="w">White</button>
+        <button class="md-chip" data-side="b">Black</button>
+      </div>
+
+      <div class="seg-pill" id="promo-group">
+        <span class="seg-label">Promote</span>
+        <button class="md-chip active" data-promo="q" title="Queen">♕</button>
+        <button class="md-chip" data-promo="n" title="Knight">♘</button>
+        <button class="md-chip" data-promo="r" title="Rook">♖</button>
+        <button class="md-chip" data-promo="b" title="Bishop">♗</button>
+      </div>
+
+      <div class="seg-pill">
+        <span class="seg-label">View</span>
+        <button class="md-chip" onclick="setCameraPreset(1)">White</button>
+        <button class="md-chip" onclick="setCameraPreset(2)">Angle</button>
+        <button class="md-chip" onclick="setCameraPreset(3)">Top</button>
+        <button class="md-chip" onclick="flipCamera()">Flip</button>
+      </div>
+
+      <div class="seg-pill">
+        <button class="md-chip accent" onclick="showTacticalHint()">💡 Hint</button>
+        <button class="md-chip" onclick="undoMove()">↩ Undo</button>
+        <button class="md-chip" onclick="resetGame()">⟳ Reset</button>
+        <button class="md-chip" id="mute-btn" onclick="toggleAudio()">🔊</button>
+        <button class="md-chip" id="quality-btn" onclick="toggleQuality()" title="Shadow quality">Shadows: High</button>
+        <button class="md-chip" onclick="toggleFull()">⛶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING LEFT TELEMETRY & RIGHT MOVE LEDGER -->
+  <div class="middle-area">
+    <div class="side-dock">
+      <div class="faction-card active-turn" id="card-white">
+        <div class="faction-header">
+          <span style="color:#F5E6C4;">⚪ MARBLE ORDER</span>
+          <span class="adv-pill" id="adv-white">+0</span>
+        </div>
+        <div class="captured-tray" id="cap-white">—</div>
+      </div>
+
+      <div class="eval-bar-wrap" title="Material Balance">
+        <div class="eval-bar-fill" id="eval-fill"></div>
+      </div>
+
+      <div class="faction-card" id="card-black">
+        <div class="faction-header">
+          <span style="color:#FF7A8A;">⚫ OBSIDIAN GUARD</span>
+          <span class="adv-pill" id="adv-black">+0</span>
+        </div>
+        <div class="captured-tray" id="cap-black">—</div>
+      </div>
+
+      <div class="hover-readout">
+        <span id="hover-sq">Square: —</span>
+        <span id="hover-piece">Ready</span>
+      </div>
+    </div>
+
+    <div class="side-dock" style="width: 210px;">
+      <div class="ledger-title">
+        <span>Move Chronicle</span>
+        <span id="move-count">Turn 1</span>
+      </div>
+      <div class="ledger-scroll" id="ledger-list">
+        <div style="color:var(--md-muted); font-size:0.72rem;">Click any Marble piece or square to begin.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM SHORTCUTS & GPU TELEMETRY -->
+  <div class="bottom-bar">
+    <div>
+      <span class="kbd-tag">L-Click</span> Select / Move
+      <span class="kbd-tag">R-Drag</span> Orbit Cathedral
+      <span class="kbd-tag">Wheel</span> Zoom
+      <span class="kbd-tag">H</span> Hint
+      <span class="kbd-tag">Z</span> Undo
+      <span class="kbd-tag">Space</span> Flip
+    </div>
+    <div class="telemetry" id="telemetry">GPU: DirectX11 PBR • 4K Shadows • 60 FPS</div>
+  </div>
+</div>
+
+<!-- ENDGAME MODAL -->
+<div class="modal-backdrop" id="end-modal">
+  <div class="modal-card">
+    <div class="modal-title" id="modal-title">VICTORY</div>
+    <div class="modal-sub" id="modal-sub">The Marble Order triumphs by Checkmate.</div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="resetGame()">Play New Match</button>
+      <button class="modal-btn secondary" onclick="undoMove()">Undo Last</button>
+      <button class="modal-btn secondary" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
