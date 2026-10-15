@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "test": "node --test \"tests/*.test.mjs\"",
-    "lint": "eslint web/game.js",
+    "lint": "eslint web/*.js",
     "test:visual": "node tests/visual_regression.mjs"
   },
   "devDependencies": {

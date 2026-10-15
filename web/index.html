@@ -47,19 +47,19 @@
 
       <div class="seg-pill">
         <span class="seg-label">View</span>
-        <button class="md-chip" onclick="setCameraPreset(1)">White</button>
-        <button class="md-chip" onclick="setCameraPreset(2)">Angle</button>
-        <button class="md-chip" onclick="setCameraPreset(3)">Top</button>
-        <button class="md-chip" onclick="flipCamera()">Flip</button>
+        <button class="md-chip" id="btn-cam-white">White</button>
+        <button class="md-chip" id="btn-cam-angle">Angle</button>
+        <button class="md-chip" id="btn-cam-top">Top</button>
+        <button class="md-chip" id="btn-cam-flip">Flip</button>
       </div>
 
       <div class="seg-pill">
-        <button class="md-chip accent" onclick="showTacticalHint()">💡 Hint</button>
-        <button class="md-chip" onclick="undoMove()">↩ Undo</button>
-        <button class="md-chip" onclick="resetGame()">⟳ Reset</button>
-        <button class="md-chip" id="mute-btn" onclick="toggleAudio()">🔊</button>
-        <button class="md-chip" id="quality-btn" onclick="toggleQuality()" title="Shadow quality">Shadows: High</button>
-        <button class="md-chip" onclick="toggleFull()">⛶</button>
+        <button class="md-chip accent" id="btn-hint">💡 Hint</button>
+        <button class="md-chip" id="btn-undo">↩ Undo</button>
+        <button class="md-chip" id="btn-reset">⟳ Reset</button>
+        <button class="md-chip" id="mute-btn">🔊</button>
+        <button class="md-chip" id="quality-btn" title="Shadow quality">Shadows: High</button>
+        <button class="md-chip" id="btn-fullscreen">⛶</button>
       </div>
     </div>
   </div>
@@ -124,12 +124,12 @@
     <div class="modal-title" id="modal-title">VICTORY</div>
     <div class="modal-sub" id="modal-sub">The Marble Order triumphs by Checkmate.</div>
     <div class="modal-actions">
-      <button class="modal-btn" onclick="resetGame()">Play New Match</button>
-      <button class="modal-btn secondary" onclick="undoMove()">Undo Last</button>
-      <button class="modal-btn secondary" onclick="closeModal()">Close</button>
+      <button class="modal-btn" id="modal-btn-reset">Play New Match</button>
+      <button class="modal-btn secondary" id="modal-btn-undo">Undo Last</button>
+      <button class="modal-btn secondary" id="modal-btn-close">Close</button>
     </div>
   </div>
 </div>
-<script src="game.js"></script>
+<script type="module" src="main.js"></script>
 </body>
 </html>
