@@ -22,17 +22,17 @@ class NativeChessBridge:
     def __init__(self):
         self._window = None
 
-    def compute_ai_move(self, fen: str, depth: int = 2):
+    def compute_ai_move(self, fen: str, depth: int = 2, history: list[str] | None = None):
         try:
             depth = int(depth)
-            return choose_move(fen, depth, jitter=JITTER.get(depth, 10))
+            return choose_move(fen, depth, jitter=JITTER.get(depth, 10), history=history)
         except Exception as exc:  # bad FEN etc. -> JS falls back to a random legal move
             print("compute_ai_move failed:", exc, file=sys.stderr)
             return None
 
-    def compute_hint(self, fen: str):
+    def compute_hint(self, fen: str, history: list[str] | None = None):
         try:
-            return choose_move(fen, 2, jitter=0, time_budget=3.0)
+            return choose_move(fen, 2, jitter=0, time_budget=3.0, history=history)
         except Exception as exc:
             print("compute_hint failed:", exc, file=sys.stderr)
             return None

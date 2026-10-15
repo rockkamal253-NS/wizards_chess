@@ -163,9 +163,10 @@ export async function triggerAI() {
   }
 
   let aiMove = null;
+  const history = state.game.history({ verbose: true }).map(m => m.from + m.to + (m.promotion || ''));
   try {
     if (window.pywebview && window.pywebview.api) {
-      aiMove = await window.pywebview.api.compute_ai_move(fenAtStart, state.aiDepth);
+      aiMove = await window.pywebview.api.compute_ai_move(fenAtStart, state.aiDepth, history);
     }
   } catch (e) {
     console.error(e);
@@ -192,10 +193,11 @@ export async function showTacticalHint() {
   if (state.isAnimating || state.game.game_over() || aiTurn()) return;
   const myGen = state.gen;
   const fenAtStart = state.game.fen();
+  const history = state.game.history({ verbose: true }).map(m => m.from + m.to + (m.promotion || ''));
   let suggestion = null;
   try {
     if (window.pywebview && window.pywebview.api) {
-      suggestion = await window.pywebview.api.compute_hint(fenAtStart);
+      suggestion = await window.pywebview.api.compute_hint(fenAtStart, history);
     }
   } catch (e) {
     console.error(e);

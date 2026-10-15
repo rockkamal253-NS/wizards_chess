@@ -203,9 +203,36 @@ class Searcher:
         return best, cands
 
 
-def choose_move(fen: str, depth: int = 2, jitter: int = 0, time_budget: float = TIME_BUDGET):
+def build_board(fen: str, history: list[str] | None = None) -> chess.Board:
+    """Construct a chess.Board with move history if provided."""
+    if history:
+        try:
+            b = chess.Board()
+            for m in history:
+                b.push_uci(m)
+            if b.fen() == fen or b.board_fen() == chess.Board(fen).board_fen():
+                return b
+        except Exception:
+            pass
+        try:
+            b = chess.Board(fen)
+            for m in history:
+                b.push_uci(m)
+            return b
+        except Exception:
+            pass
+    return chess.Board(fen)
+
+
+def choose_move(
+    fen: str,
+    depth: int = 2,
+    jitter: int = 0,
+    time_budget: float = TIME_BUDGET,
+    history: list[str] | None = None,
+):
     """Pick a move for the side to move in `fen`. Returns a dict or None."""
-    board = chess.Board(fen)
+    board = build_board(fen, history)
     if board.is_game_over(claim_draw=False):
         return None
     depth = max(1, min(int(depth), MAX_DEPTH))

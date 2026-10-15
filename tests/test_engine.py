@@ -67,9 +67,30 @@ def test_evaluate_is_symmetric():
     assert engine.evaluate(f) == engine.evaluate(g)
 
 
-@pytest.mark.xfail(reason="KNOWN GAP: engine receives only a FEN, so it cannot see repetition history")
 def test_engine_can_see_repetition_history():
+    history = ["g1f3", "g8f6", "f3g1", "f6g8"] * 2
     b = chess.Board()
-    for m in ["g1f3", "g8f6", "f3g1", "f6g8"] * 2:
+    for m in history:
         b.push_uci(m)
-    assert chess.Board(b.fen()).is_repetition(3)
+    board = engine.build_board(b.fen(), history=history)
+    assert board.is_repetition(3)
+
+
+def test_engine_avoids_repetition_when_winning():
+    # White has K+Q vs K. Repeating Kh1-g1 leads to a 0-score draw.
+    # The engine should avoid this repetition since it has an overwhelming win.
+    b = chess.Board("7k/8/8/8/8/8/8/6QK w - - 0 1")
+    history = ["g1h1", "h8g8", "h1g1", "g8h8", "g1h1", "h8g8"]
+    r = engine.choose_move(b.fen(), depth=2, history=history)
+    assert r is not None
+    assert (r["from"], r["to"]) != ("h1", "g1")
+
+
+def test_engine_claims_repetition_when_losing():
+    # Black is down a Queen but can repeat Qe5-e1+ to force a repetition draw (0 vs losing).
+    b = chess.Board("Q7/7k/8/4q3/8/8/6PP/7K b - - 0 1")
+    history = ["e5e1", "h1h2", "e1e5", "h2h1", "e5e1", "h1h2", "e1e5", "h2h1"]
+    r = engine.choose_move(b.fen(), depth=2, history=history)
+    assert r is not None
+    assert (r["from"], r["to"]) == ("e5", "e1")
+
