@@ -63,3 +63,4 @@ wizards_chess/
 - **Shared GPU resources:** geometry/materials from `cg()`/`cmat()` are shared. Do not mutate or `dispose()` them in place. Tile materials are per-tile clones because highlights use per-tile `emissive`.
 - **Highlights are emissive**, not albedo tints.
 - **Two rule engines** (chess.js, python-chess) must agree; the UI is the source of truth, Python only suggests.
+- **Module loading & webview server:** ES modules (`<script type="module">`) are blocked under `file://` by WebView CORS policies. To enable clean modular ES code without requiring an extra build/bundle pipeline, `app.py` serves `web/` using pywebview's built-in HTTP server (`webview.start(http_server=True)`). Playwright visual regression tests run Chromium with `--allow-file-access-from-files`.

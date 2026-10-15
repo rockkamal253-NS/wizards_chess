@@ -49,7 +49,7 @@ def main():
     bridge = NativeChessBridge()
     win = webview.create_window(
         title="Wizard's Chess — Gothic Cathedral",
-        url=INDEX.as_uri(),
+        url=str(INDEX),
         js_api=bridge,
         width=1600,
         height=940,
@@ -57,7 +57,7 @@ def main():
         background_color="#07060B",
     )
     bridge._window = win
-    webview.start()
+    webview.start(http_server=True)
 
 
 if __name__ == "__main__":

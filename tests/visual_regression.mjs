@@ -16,7 +16,8 @@ const CHROMIUM_FLAGS = [
   '--use-angle=swiftshader',
   '--use-gl=angle',
   '--enable-unsafe-swiftshader',
-  '--ignore-gpu-blocklist'
+  '--ignore-gpu-blocklist',
+  '--allow-file-access-from-files'
 ];
 
 async function captureScreenshots(outputDir) {
