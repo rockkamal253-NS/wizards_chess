@@ -35,6 +35,7 @@ import {
   formatClock
 } from './hud.js';
 import { initCameraControls, setCameraPreset, flipCamera } from './camera.js';
+import { saveSettings, loadSettings, applyLoadedSettings } from './settings.js';
 
 // ============================================================================
 // GPU TELEMETRY DETECTION
@@ -247,6 +248,7 @@ function bindUIEvents() {
       document.querySelectorAll('#ai-group .md-chip').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       state.aiDepth = parseInt(btn.dataset.depth, 10);
+      saveSettings();
       triggerAI();
     });
   });
@@ -277,12 +279,14 @@ function bindUIEvents() {
 // ============================================================================
 // INITIALIZATION
 // ============================================================================
+loadSettings();
 buildCathedral(scene);
 initBoard(scene);
 syncBoardFull(scene);
 initInput(camera, dom.canvas);
 initCameraControls();
 bindUIEvents();
+applyLoadedSettings();
 applyShadowQuality();
 updateHUD();
 requestAnimationFrame(animate);
@@ -315,6 +319,9 @@ window.offerDraw = offerDraw;
 window.setTimeControl = setTimeControl;
 window.tickClock = tickClock;
 window.formatClock = formatClock;
+window.saveSettings = saveSettings;
+window.loadSettings = loadSettings;
+window.applyLoadedSettings = applyLoadedSettings;
 
 Object.defineProperty(window, 'camDist', {
   get: () => state.camDist,

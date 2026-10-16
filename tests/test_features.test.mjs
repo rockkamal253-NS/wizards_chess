@@ -79,6 +79,14 @@ globalThis.window = {
 };
 globalThis.performance = { now: () => 1000 };
 
+const storage = new Map();
+globalThis.localStorage = {
+  getItem: k => storage.get(k) || null,
+  setItem: (k, v) => storage.set(k, String(v)),
+  removeItem: k => storage.delete(k),
+  clear: () => storage.clear()
+};
+
 const threeMin = createRequire(import.meta.url)('../web/vendor/three.min.js');
 const THREE = Object.create(threeMin);
 THREE.WebGLRenderer = class {
@@ -97,6 +105,7 @@ THREE.PMREMGenerator = class {
 globalThis.THREE = THREE;
 
 const { state } = await import('../web/state.js');
+const { sfx } = await import('../web/audio.js');
 const {
   openIoModal,
   closeIoModal,
@@ -112,6 +121,7 @@ const {
   tickClock
 } = await import('../web/hud.js');
 const { handleSquareClick } = await import('../web/input.js');
+const { saveSettings, loadSettings } = await import('../web/settings.js');
 
 test('IO modal open/close controls visibility and populates textarea', () => {
   state.game = new Chess();
@@ -291,4 +301,58 @@ test('tickClock flag fall triggers loss on time', () => {
   assert.equal(state.clockBlack, 0);
   assert.ok(state.matchResult);
   assert.ok(state.matchResult.status.includes('MARBLE ORDER WINS ON TIME'));
+});
+
+test('saveSettings stores aiDepth, humanColor, shadowHigh, muted in localStorage', () => {
+  globalThis.localStorage.clear();
+  state.aiDepth = 3;
+  state.humanColor = 'b';
+  state.shadowHigh = false;
+  sfx.muted = true;
+
+  saveSettings();
+  const raw = globalThis.localStorage.getItem('wizards_chess_settings');
+  assert.ok(raw);
+  const data = JSON.parse(raw);
+  assert.deepEqual(data, {
+    aiDepth: 3,
+    humanColor: 'b',
+    shadowHigh: false,
+    muted: true
+  });
+});
+
+test('loadSettings restores persisted configuration into state and sfx', () => {
+  globalThis.localStorage.setItem('wizards_chess_settings', JSON.stringify({
+    aiDepth: 1,
+    humanColor: 'w',
+    shadowHigh: true,
+    muted: false
+  }));
+
+  const res = loadSettings();
+  assert.ok(res);
+  assert.equal(state.aiDepth, 1);
+  assert.equal(state.humanColor, 'w');
+  assert.equal(state.shadowHigh, true);
+  assert.equal(sfx.muted, false);
+});
+
+test('saveSettings and loadSettings handle storage exceptions safely without throwing', () => {
+  const origSetItem = globalThis.localStorage.setItem;
+  const origGetItem = globalThis.localStorage.getItem;
+
+  // Simulate QuotaExceededError on setItem
+  globalThis.localStorage.setItem = () => { throw new Error('QuotaExceededError'); };
+  assert.doesNotThrow(() => saveSettings());
+
+  // Simulate SecurityError on getItem
+  globalThis.localStorage.getItem = () => { throw new Error('SecurityError'); };
+  assert.doesNotThrow(() => {
+    const res = loadSettings();
+    assert.equal(res, null);
+  });
+
+  globalThis.localStorage.setItem = origSetItem;
+  globalThis.localStorage.getItem = origGetItem;
 });

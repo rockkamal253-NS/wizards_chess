@@ -5,6 +5,7 @@ import { FILES, syncBoardFull, rebuildTacticalMarkers } from './board.js';
 import { scene } from './materials.js';
 import { triggerAI } from './input.js';
 import { showToast } from './toast.js';
+import { saveSettings } from './settings.js';
 
 const SYMBOLS_W = { p: '♙', n: '♘', b: '♗', r: '♖', q: '♕' };
 const SYMBOLS_B = { p: '♟', n: '♞', b: '♝', r: '♜', q: '♛' };
@@ -171,11 +172,13 @@ export function applyShadowQuality() {
 export function toggleQuality() {
   state.shadowHigh = !state.shadowHigh;
   applyShadowQuality();
+  saveSettings();
 }
 
 export function toggleAudio() {
   sfx.muted = !sfx.muted;
   if (dom.muteBtn) dom.muteBtn.textContent = sfx.muted ? '🔇' : '🔊';
+  saveSettings();
 }
 
 export function setSide(color) {
@@ -187,6 +190,7 @@ export function setSide(color) {
   const turn = 2 * Math.PI;
   state.targetYaw = Math.round(state.targetYaw / turn) * turn + (color === 'b' ? Math.PI : 0);
   resetGame();
+  saveSettings();
 }
 
 export function toggleFull() {
