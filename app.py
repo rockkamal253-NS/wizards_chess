@@ -44,6 +44,11 @@ class NativeChessBridge:
 
 
 def main():
+    if "--smoke-test" in sys.argv:
+        meipass = getattr(sys, "_MEIPASS", None)
+        print(f"SMOKE_TEST: meipass={meipass}, INDEX={INDEX}, exists={INDEX.exists()}")
+        sys.exit(0 if INDEX.exists() else 1)
+
     if not INDEX.exists():
         sys.exit(f"Missing UI file: {INDEX}")
     bridge = NativeChessBridge()

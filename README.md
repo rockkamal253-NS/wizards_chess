@@ -48,6 +48,11 @@ npm run lint
 Package as a standalone desktop executable with PyInstaller:
 ```bash
 pip install pyinstaller
-pyinstaller --onefile --windowed --add-data "web;web" --name wizards-chess app.py
+pyinstaller wizards_chess.spec
 ```
-*(On Linux/macOS, replace `--add-data "web;web"` with `--add-data "web:web"`)*
+The built executable will be generated in `dist/wizards_chess.exe` (or `dist/wizards_chess` on Linux/macOS).
+
+To verify the bundle starts cleanly without launching the GUI:
+```bash
+./dist/wizards_chess.exe --smoke-test
+```
