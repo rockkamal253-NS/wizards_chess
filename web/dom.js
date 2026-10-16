@@ -35,5 +35,12 @@ export const dom = {
   get btnFullscreen() { return document.getElementById('btn-fullscreen'); },
   get modalBtnReset() { return document.getElementById('modal-btn-reset'); },
   get modalBtnUndo() { return document.getElementById('modal-btn-undo'); },
-  get modalBtnClose() { return document.getElementById('modal-btn-close'); }
+  get modalBtnClose() { return document.getElementById('modal-btn-close'); },
+  get btnIo() { return document.getElementById('btn-io'); },
+  get ioModal() { return document.getElementById('io-modal'); },
+  get ioTextarea() { return document.getElementById('io-textarea'); },
+  get btnExportFen() { return document.getElementById('btn-export-fen'); },
+  get btnExportPgn() { return document.getElementById('btn-export-pgn'); },
+  get btnImportFen() { return document.getElementById('btn-import-fen'); },
+  get btnIoClose() { return document.getElementById('btn-io-close'); }
 };

@@ -4,6 +4,7 @@ import { sfx } from './audio.js';
 import { FILES, syncBoardFull, rebuildTacticalMarkers } from './board.js';
 import { scene } from './materials.js';
 import { triggerAI } from './input.js';
+import { showToast } from './toast.js';
 
 const SYMBOLS_W = { p: '♙', n: '♘', b: '♗', r: '♖', q: '♕' };
 const SYMBOLS_B = { p: '♟', n: '♞', b: '♝', r: '♜', q: '♛' };
@@ -180,4 +181,65 @@ export function toggleFull() {
   } else {
     document.exitFullscreen();
   }
+}
+
+export function openIoModal() {
+  if (dom.ioTextarea) {
+    dom.ioTextarea.value = state.game.fen();
+  }
+  if (dom.ioModal) {
+    dom.ioModal.classList.add('visible');
+  }
+}
+
+export function closeIoModal() {
+  if (dom.ioModal) {
+    dom.ioModal.classList.remove('visible');
+  }
+}
+
+export function exportFen() {
+  const fen = state.game.fen();
+  if (dom.ioTextarea) dom.ioTextarea.value = fen;
+  if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fen).catch(() => {});
+  }
+  showToast('FEN copied to clipboard', 'info');
+  return fen;
+}
+
+export function exportPgn() {
+  const pgn = state.game.pgn();
+  if (dom.ioTextarea) dom.ioTextarea.value = pgn;
+  if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(pgn).catch(() => {});
+  }
+  showToast('PGN copied to clipboard', 'info');
+  return pgn;
+}
+
+export function importFen(fenString) {
+  if (state.isAnimating) return false;
+  const str = (fenString !== undefined ? fenString : (dom.ioTextarea ? dom.ioTextarea.value : '')).trim();
+  if (!str) {
+    showToast('Please enter a valid FEN string', 'warn');
+    return false;
+  }
+  const testChess = new Chess();
+  const success = testChess.load(str);
+  if (!success) {
+    showToast('Invalid FEN position string', 'error');
+    return false;
+  }
+
+  state.gen++;
+  state.game.load(str);
+  clearSelection();
+  syncBoardFull(scene);
+  rebuildTacticalMarkers();
+  updateHUD();
+  closeIoModal();
+  showToast('FEN position loaded successfully', 'info');
+  triggerAI();
+  return true;
 }

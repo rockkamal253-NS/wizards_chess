@@ -22,7 +22,12 @@ import {
   toggleAudio,
   undoMove,
   resetGame,
-  closeModal
+  closeModal,
+  openIoModal,
+  closeIoModal,
+  exportFen,
+  exportPgn,
+  importFen
 } from './hud.js';
 import { initCameraControls, setCameraPreset, flipCamera } from './camera.js';
 
@@ -223,6 +228,12 @@ function bindUIEvents() {
   if (dom.modalBtnUndo) dom.modalBtnUndo.addEventListener('click', undoMove);
   if (dom.modalBtnClose) dom.modalBtnClose.addEventListener('click', closeModal);
 
+  if (dom.btnIo) dom.btnIo.addEventListener('click', openIoModal);
+  if (dom.btnExportFen) dom.btnExportFen.addEventListener('click', exportFen);
+  if (dom.btnExportPgn) dom.btnExportPgn.addEventListener('click', exportPgn);
+  if (dom.btnImportFen) dom.btnImportFen.addEventListener('click', () => importFen());
+  if (dom.btnIoClose) dom.btnIoClose.addEventListener('click', closeIoModal);
+
   document.querySelectorAll('#ai-group .md-chip').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#ai-group .md-chip').forEach(b => b.classList.remove('active'));
@@ -280,6 +291,11 @@ window.closeModal = closeModal;
 window.toggleQuality = toggleQuality;
 window.toggleAudio = toggleAudio;
 window.toggleFull = toggleFull;
+window.openIoModal = openIoModal;
+window.closeIoModal = closeIoModal;
+window.exportFen = exportFen;
+window.exportPgn = exportPgn;
+window.importFen = importFen;
 
 Object.defineProperty(window, 'camDist', {
   get: () => state.camDist,
