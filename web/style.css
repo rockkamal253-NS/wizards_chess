@@ -239,3 +239,41 @@
 .promo-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(226, 184, 87, 0.35); }
 .md-chip:focus-visible, .modal-btn:focus-visible { outline: 2px solid var(--md-gold); outline-offset: 1px; }
 
+/* Non-blocking Toast Notifications */
+.toast-container {
+  position: fixed;
+  bottom: 48px;
+  right: 24px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  background: rgba(24, 20, 35, 0.94);
+  border: 1px solid var(--md-gold);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: var(--md-text);
+  font-size: 0.82rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  max-width: 340px;
+  backdrop-filter: blur(8px);
+}
+.toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast-warn {
+  border-color: #E2B857;
+}
+.toast-error {
+  border-color: #FF4D64;
+}
+
+

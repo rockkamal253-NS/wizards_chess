@@ -3,6 +3,7 @@ import { dom } from './dom.js';
 import { sfx } from './audio.js';
 import { sqToWorld, rebuildTacticalMarkers, hoverCursor } from './board.js';
 import { updateHUD } from './hud.js';
+import { showToast } from './toast.js';
 
 // ============================================================================
 // UNIFIED RAYCASTING (DETECTS BOTH 3D PIECES & BOARD TILES)
@@ -200,13 +201,15 @@ export async function triggerAI() {
   }
 
   let aiMove = null;
+  let bridgeError = null;
   const history = state.game.history({ verbose: true }).map(m => m.from + m.to + (m.promotion || ''));
   try {
     if (window.pywebview && window.pywebview.api) {
       aiMove = await window.pywebview.api.compute_ai_move(fenAtStart, state.aiDepth, history);
     }
   } catch (e) {
-    console.error(e);
+    bridgeError = e;
+    console.error('AI bridge encountered an error:', { error: e, fen: fenAtStart, depth: state.aiDepth });
   } finally {
     if (state.aiPendingGen === myGen) state.aiPendingGen = -1;
   }
@@ -219,8 +222,18 @@ export async function triggerAI() {
 
   const legal = state.game.moves({ verbose: true });
   if (legal.length === 0) return;
+
+  const isLegal = Boolean(aiMove && legal.some(m => m.from === aiMove.from && m.to === aiMove.to));
+  if (window.pywebview && window.pywebview.api && (!isLegal || bridgeError)) {
+    const reason = bridgeError
+      ? `Bridge error: ${bridgeError.message || bridgeError}`
+      : (!aiMove ? 'AI returned no move' : `AI returned illegal move (${aiMove.from}-${aiMove.to})`);
+    console.warn('AI move fallback triggered:', { reason, fen: fenAtStart, aiMove, bridgeError });
+    showToast(`${reason} — fell back to random legal move`, 'warn');
+  }
+
   // Two rule engines are in play, so never trust the bridge blindly: confirm legality here.
-  if (!aiMove || !legal.some(m => m.from === aiMove.from && m.to === aiMove.to)) {
+  if (!isLegal) {
     aiMove = legal[Math.floor(Math.random() * legal.length)];
   }
   executeMoveAnimated(aiMove.from, aiMove.to, aiMove.promotion || 'q');
@@ -232,18 +245,30 @@ export async function showTacticalHint() {
   const fenAtStart = state.game.fen();
   const history = state.game.history({ verbose: true }).map(m => m.from + m.to + (m.promotion || ''));
   let suggestion = null;
+  let hintError = null;
   try {
     if (window.pywebview && window.pywebview.api) {
       suggestion = await window.pywebview.api.compute_hint(fenAtStart, history);
     }
   } catch (e) {
-    console.error(e);
+    hintError = e;
+    console.error('Hint bridge encountered an error:', { error: e, fen: fenAtStart });
   }
   if (myGen !== state.gen || state.game.fen() !== fenAtStart || state.isAnimating || aiTurn()) return;
 
   const legal = state.game.moves({ verbose: true });
   if (legal.length === 0) return;
-  if (!suggestion || !legal.some(m => m.from === suggestion.from && m.to === suggestion.to)) {
+
+  const isLegal = Boolean(suggestion && legal.some(m => m.from === suggestion.from && m.to === suggestion.to));
+  if (window.pywebview && window.pywebview.api && (!isLegal || hintError)) {
+    const reason = hintError
+      ? `Hint bridge error: ${hintError.message || hintError}`
+      : (!suggestion ? 'Hint returned no move' : `Hint returned illegal move (${suggestion.from}-${suggestion.to})`);
+    console.warn('Hint fallback triggered:', { reason, fen: fenAtStart, suggestion, hintError });
+    showToast(`${reason} — fell back to first legal move`, 'warn');
+  }
+
+  if (!isLegal) {
     suggestion = legal[0];
   }
   state.hintMove = suggestion;

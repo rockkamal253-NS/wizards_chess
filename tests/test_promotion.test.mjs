@@ -35,7 +35,11 @@ const mockElements = {
   'move-count': { textContent: '' },
   'mute-btn': { textContent: '' },
   'quality-btn': { textContent: '' },
-  'telemetry': { textContent: '' }
+  'telemetry': { textContent: '' },
+  'toast-container': {
+    children: [],
+    appendChild(el) { this.children.push(el); }
+  }
 };
 
 globalThis.document = {
@@ -43,6 +47,7 @@ globalThis.document = {
   querySelectorAll: () => [],
   addEventListener: () => {},
   createElement: () => ({
+    classList: { add() {}, remove() {} },
     getContext: () => ({
       fillStyle: '',
       fillRect() {},
@@ -82,7 +87,7 @@ THREE.PMREMGenerator = class {
 globalThis.THREE = THREE;
 
 const { state } = await import('../web/state.js');
-const { handleSquareClick, selectPromotion, cancelPromotion } = await import('../web/input.js');
+const { handleSquareClick, selectPromotion, cancelPromotion, triggerAI } = await import('../web/input.js');
 
 test('Pawn moving to 8th rank enters pendingPromotion and opens dialog', () => {
   // Set up board with white pawn on a7 ready to promote to a8
@@ -155,3 +160,52 @@ test('Cancel promotion restores state without executing move', () => {
   assert.equal(state.game.turn(), 'w');
   assert.equal(state.game.get('a7').type, 'p');
 });
+
+test('Bridge failure or invalid move triggers toast and falls back to legal move', async () => {
+  // AI is playing black, it is black's turn
+  state.game = new Chess('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1');
+  state.humanColor = 'w';
+  state.aiDepth = 2;
+  state.isAnimating = false;
+  state.aiPendingGen = -1;
+  mockElements['toast-container'].children = [];
+
+  // Mock pywebview bridge returning an illegal move
+  globalThis.window.pywebview = {
+    api: {
+      compute_ai_move: async () => ({ from: 'e8', to: 'a1', promotion: 'q' })
+    }
+  };
+
+  await triggerAI();
+
+  // Toast container should have received a notification
+  assert.ok(mockElements['toast-container'].children.length > 0);
+  assert.match(mockElements['toast-container'].children[0].textContent, /illegal move/i);
+
+  // But the game still moved legally!
+  assert.equal(state.game.turn(), 'w');
+  assert.ok(state.activeAnim !== null || state.game.history().length > 0);
+});
+
+test('Bridge throwing error triggers toast and falls back to legal move', async () => {
+  state.game = new Chess('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1');
+  state.humanColor = 'w';
+  state.aiDepth = 2;
+  state.isAnimating = false;
+  state.aiPendingGen = -1;
+  mockElements['toast-container'].children = [];
+
+  globalThis.window.pywebview = {
+    api: {
+      compute_ai_move: async () => { throw new Error('Bridge timeout test'); }
+    }
+  };
+
+  await triggerAI();
+
+  assert.ok(mockElements['toast-container'].children.length > 0);
+  assert.match(mockElements['toast-container'].children[0].textContent, /bridge error/i);
+  assert.equal(state.game.turn(), 'w');
+});
+
