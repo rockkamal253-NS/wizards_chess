@@ -178,6 +178,21 @@
     background: rgba(255, 255, 255, 0.025);
   }
   .ledger-row span:first-child { color: var(--md-muted); }
+  .ledger-san {
+    cursor: pointer;
+    padding: 1px 4px;
+    border-radius: 3px;
+    transition: background 0.1s ease, color 0.1s ease;
+  }
+  .ledger-san:hover {
+    background: rgba(226, 184, 87, 0.2);
+    color: var(--md-gold);
+  }
+  .ledger-san.active-ply {
+    background: rgba(226, 184, 87, 0.35);
+    color: var(--md-gold);
+    font-weight: 700;
+  }
 
   /* Bottom Status & Hotkey Strip */
   .bottom-bar {

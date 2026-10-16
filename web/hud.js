@@ -61,6 +61,11 @@ export function updateHUD() {
     if (dotEl) dotEl.style.background = isWhiteTurn ? '#F2C96D' : '#FF4D64';
   }
 
+  if (state.replayPly !== null) {
+    const replayText = state.replayPly === -1 ? 'START' : `PLY ${state.replayPly + 1}`;
+    if (statusEl) statusEl.textContent = `REPLAY (${replayText}) • Click board or ➔ to resume live`;
+  }
+
   // Material Advantage & Captured Trays
   const hist = state.game.history({ verbose: true });
   const capByWhite = [];
@@ -92,19 +97,37 @@ export function updateHUD() {
 
   // 2-Column Move Ledger
   const ledger = dom.ledgerList;
-  if (dom.moveCount) dom.moveCount.textContent = `Turn ${Math.floor(hist.length / 2) + 1}`;
+  if (dom.moveCount) {
+    if (state.replayPly !== null) {
+      dom.moveCount.textContent = `Replay (${state.replayPly === -1 ? 'Start' : state.replayPly + 1}/${hist.length})`;
+    } else {
+      dom.moveCount.textContent = `Turn ${Math.floor(hist.length / 2) + 1}`;
+    }
+  }
   if (ledger) {
     if (hist.length === 0) {
       ledger.innerHTML = '<div style="color:var(--md-muted); font-size:0.72rem;">Click any Marble piece or square to begin.</div>';
     } else {
       let html = '';
+      const activePly = state.replayPly !== null ? state.replayPly : (hist.length - 1);
       for (let i = 0; i < hist.length; i += 2) {
         const wSan = hist[i].san;
         const bSan = hist[i + 1] ? hist[i + 1].san : '';
-        html += `<div class="ledger-row"><span>${(i / 2) + 1}.</span><span>${wSan}</span><span>${bSan}</span></div>`;
+        const wActive = activePly === i ? ' active-ply' : '';
+        const bActive = activePly === (i + 1) ? ' active-ply' : '';
+        html += `<div class="ledger-row">` +
+          `<span>${(i / 2) + 1}.</span>` +
+          `<span class="ledger-san${wActive}" data-ply="${i}">${wSan}</span>` +
+          (bSan ? `<span class="ledger-san${bActive}" data-ply="${i + 1}">${bSan}</span>` : '<span></span>') +
+          `</div>`;
       }
       ledger.innerHTML = html;
-      ledger.scrollTop = ledger.scrollHeight;
+      const activeEl = typeof ledger.querySelector === 'function' ? ledger.querySelector('.active-ply') : null;
+      if (activeEl && typeof activeEl.scrollIntoView === 'function') {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      } else {
+        ledger.scrollTop = ledger.scrollHeight;
+      }
     }
   }
   updateClockUI();
@@ -121,6 +144,8 @@ export function clearSelection() {
 
 export function undoMove() {
   if (state.isAnimating) return;
+  state.replayPly = null;
+  state.replayGame = null;
   if (state.matchResult) {
     state.matchResult = null;
     clearSelection();
@@ -144,6 +169,8 @@ export function resetGame() {
   if (state.isAnimating) return;
   state.gen++;
   state.matchResult = null;
+  state.replayPly = null;
+  state.replayGame = null;
   state.clockWhite = state.timeControl;
   state.clockBlack = state.timeControl;
   state.game.reset();
@@ -394,4 +421,57 @@ export function tickClock(dt) {
     }
   }
   updateClockUI();
+}
+
+export function getReplayGame(ply) {
+  if (ply === null || ply === undefined) return null;
+  const history = state.game.history();
+  if (ply >= history.length - 1) return null;
+  const replay = new Chess();
+  for (let i = 0; i <= ply; i++) {
+    if (history[i]) replay.move(history[i]);
+  }
+  return replay;
+}
+
+export function setReplayPly(ply) {
+  if (state.isAnimating) return;
+  const hist = state.game.history({ verbose: true });
+  if (hist.length === 0) {
+    state.replayPly = null;
+    state.replayGame = null;
+    return;
+  }
+  if (ply === null || ply >= hist.length - 1) {
+    state.replayPly = null;
+    state.replayGame = null;
+    const last = hist[hist.length - 1];
+    state.lastMove = last ? { from: last.from, to: last.to } : null;
+  } else {
+    state.replayPly = Math.max(-1, ply);
+    state.replayGame = getReplayGame(state.replayPly);
+    if (state.replayPly >= 0 && hist[state.replayPly]) {
+      state.lastMove = { from: hist[state.replayPly].from, to: hist[state.replayPly].to };
+    } else {
+      state.lastMove = null;
+    }
+  }
+  clearSelection();
+  syncBoardFull(scene);
+  rebuildTacticalMarkers();
+  updateHUD();
+}
+
+export function stepReplay(delta) {
+  const hist = state.game.history();
+  if (hist.length === 0) return;
+  const currentPly = state.replayPly !== null ? state.replayPly : (hist.length - 1);
+  const targetPly = currentPly + delta;
+  if (targetPly >= hist.length - 1) {
+    setReplayPly(null);
+  } else if (targetPly < -1) {
+    setReplayPly(-1);
+  } else {
+    setReplayPly(targetPly);
+  }
 }

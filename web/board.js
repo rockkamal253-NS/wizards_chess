@@ -189,10 +189,12 @@ export function syncBoardFull(scene) {
   Object.values(state.pieceMeshes).forEach(m => scene.remove(m));
   for (const k in state.pieceMeshes) delete state.pieceMeshes[k];
 
+  const sourceGame = state.replayGame || state.game;
+
   for (let r = 1; r <= 8; r++) {
     for (let f = 0; f < 8; f++) {
       const sq = FILES[f] + r;
-      const p = state.game.get(sq);
+      const p = sourceGame.get(sq);
       if (p) {
         const mesh = buildPieceMesh(p.type, p.color);
         mesh.position.copy(sqToWorld(sq));

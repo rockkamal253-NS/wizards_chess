@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { dom } from './dom.js';
-import { undoMove, resetGame, toggleAudio, updateHUD } from './hud.js';
+import { undoMove, resetGame, toggleAudio, updateHUD, stepReplay } from './hud.js';
 import { showTacticalHint } from './input.js';
 
 // ============================================================================
@@ -33,8 +33,15 @@ export function initCameraControls() {
 
   window.addEventListener('keydown', e => {
     if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+    if (document.activeElement && (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT')) return;
     const k = e.key.toLowerCase();
-    if (k === ' ') {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      stepReplay(-1);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      stepReplay(1);
+    } else if (k === ' ') {
       e.preventDefault();
       flipCamera();
     } else if (k === '1') {

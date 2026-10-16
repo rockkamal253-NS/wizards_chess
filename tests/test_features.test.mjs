@@ -118,7 +118,10 @@ const {
   resetGame,
   formatClock,
   setTimeControl,
-  tickClock
+  tickClock,
+  setReplayPly,
+  stepReplay,
+  getReplayGame
 } = await import('../web/hud.js');
 const { handleSquareClick } = await import('../web/input.js');
 const { saveSettings, loadSettings } = await import('../web/settings.js');
@@ -355,4 +358,68 @@ test('saveSettings and loadSettings handle storage exceptions safely without thr
 
   globalThis.localStorage.setItem = origSetItem;
   globalThis.localStorage.getItem = origGetItem;
+});
+
+test('getReplayGame creates independent board for historical ply', () => {
+  state.game = new Chess();
+  state.game.move('e4');
+  state.game.move('e5');
+  state.game.move('Nf3');
+
+  const g0 = getReplayGame(0); // after e4
+  assert.ok(g0);
+  assert.equal(g0.history().length, 1);
+  assert.equal(g0.history()[0], 'e4');
+
+  const g1 = getReplayGame(1); // after e5
+  assert.ok(g1);
+  assert.equal(g1.history().length, 2);
+  assert.equal(g1.history()[1], 'e5');
+
+  const gLive = getReplayGame(2); // last ply is live position
+  assert.equal(gLive, null);
+});
+
+test('setReplayPly updates replay state and allows stepping with stepReplay', () => {
+  state.game = new Chess();
+  state.game.move('e4');
+  state.game.move('e5');
+  state.game.move('Nf3');
+  state.game.move('Nc6'); // 4 plies: 0, 1, 2, 3
+
+  setReplayPly(1); // inspect after e5
+  assert.equal(state.replayPly, 1);
+  assert.ok(state.replayGame);
+  assert.equal(state.replayGame.history().length, 2);
+
+  // Step backward
+  stepReplay(-1); // ply 0 (after e4)
+  assert.equal(state.replayPly, 0);
+  assert.equal(state.replayGame.history().length, 1);
+
+  // Step forward twice: ply 1, ply 2
+  stepReplay(1);
+  assert.equal(state.replayPly, 1);
+  stepReplay(1);
+  assert.equal(state.replayPly, 2);
+
+  // Step forward to end: returns to live position
+  stepReplay(1);
+  assert.equal(state.replayPly, null);
+  assert.equal(state.replayGame, null);
+});
+
+test('handleSquareClick exits replay mode and returns to live position', () => {
+  state.game = new Chess();
+  state.matchResult = null;
+  state.pendingPromotion = null;
+  state.game.move('e4');
+  state.game.move('e5');
+
+  setReplayPly(0);
+  assert.equal(state.replayPly, 0);
+
+  handleSquareClick('e2');
+  assert.equal(state.replayPly, null);
+  assert.equal(state.replayGame, null);
 });

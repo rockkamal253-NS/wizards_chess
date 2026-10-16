@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { dom } from './dom.js';
 import { sfx } from './audio.js';
 import { sqToWorld, rebuildTacticalMarkers, hoverCursor } from './board.js';
-import { updateHUD } from './hud.js';
+import { updateHUD, setReplayPly } from './hud.js';
 import { showToast } from './toast.js';
 
 // ============================================================================
@@ -117,6 +117,10 @@ export function selectPromotion(piece) {
 }
 
 export function handleSquareClick(sq) {
+  if (state.replayPly !== null) {
+    setReplayPly(null);
+    return;
+  }
   if (state.pendingPromotion || state.matchResult) return;
   state.hintMove = null;
   const vm = state.validMoves.find(m => m.to === sq);

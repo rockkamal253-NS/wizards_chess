@@ -32,7 +32,10 @@ import {
   offerDraw,
   setTimeControl,
   tickClock,
-  formatClock
+  formatClock,
+  setReplayPly,
+  stepReplay,
+  getReplayGame
 } from './hud.js';
 import { initCameraControls, setCameraPreset, flipCamera } from './camera.js';
 import { saveSettings, loadSettings, applyLoadedSettings } from './settings.js';
@@ -269,6 +272,15 @@ function bindUIEvents() {
     });
   });
 
+  if (dom.ledgerList) {
+    dom.ledgerList.addEventListener('click', e => {
+      const target = e.target.closest && e.target.closest('[data-ply]');
+      if (target && target.dataset.ply !== undefined) {
+        setReplayPly(parseInt(target.dataset.ply, 10));
+      }
+    });
+  }
+
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -322,6 +334,9 @@ window.formatClock = formatClock;
 window.saveSettings = saveSettings;
 window.loadSettings = loadSettings;
 window.applyLoadedSettings = applyLoadedSettings;
+window.setReplayPly = setReplayPly;
+window.stepReplay = stepReplay;
+window.getReplayGame = getReplayGame;
 
 Object.defineProperty(window, 'camDist', {
   get: () => state.camDist,

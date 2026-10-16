@@ -23,6 +23,8 @@ export const state = {
   timeControl: 0,
   clockWhite: 0,
   clockBlack: 0,
+  replayPly: null,
+  replayGame: null,
 
   // Camera / View state
   camYaw: 0,
