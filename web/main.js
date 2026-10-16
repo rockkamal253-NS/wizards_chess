@@ -29,7 +29,10 @@ import {
   exportPgn,
   importFen,
   resignGame,
-  offerDraw
+  offerDraw,
+  setTimeControl,
+  tickClock,
+  formatClock
 } from './hud.js';
 import { initCameraControls, setCameraPreset, flipCamera } from './camera.js';
 
@@ -56,6 +59,7 @@ function animate(now) {
   const dt = Math.min(0.05, (now - state.lastTime) / 1000);
   state.lastTime = now;
   const elapsed = now * 0.001;
+  tickClock(dt);
 
   state.frameCount++;
   if (now - state.fpsStart >= 500) {
@@ -251,6 +255,12 @@ function bindUIEvents() {
     btn.addEventListener('click', () => setSide(btn.dataset.side));
   });
 
+  document.querySelectorAll('#time-group .md-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setTimeControl(parseInt(btn.dataset.time, 10));
+    });
+  });
+
   document.querySelectorAll('#promo-modal .promo-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       selectPromotion(btn.dataset.promo);
@@ -302,6 +312,9 @@ window.exportPgn = exportPgn;
 window.importFen = importFen;
 window.resignGame = resignGame;
 window.offerDraw = offerDraw;
+window.setTimeControl = setTimeControl;
+window.tickClock = tickClock;
+window.formatClock = formatClock;
 
 Object.defineProperty(window, 'camDist', {
   get: () => state.camDist,

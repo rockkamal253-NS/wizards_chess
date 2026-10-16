@@ -21,6 +21,8 @@ const mockElements = {
   'turn-dot': { style: {} },
   'card-white': { classList: { toggle() {} } },
   'card-black': { classList: { toggle() {} } },
+  'clock-white': { style: { display: 'none' }, textContent: '', classList: { toggle() {} } },
+  'clock-black': { style: { display: 'none' }, textContent: '', classList: { toggle() {} } },
   'hover-sq': { textContent: '' },
   'hover-piece': { textContent: '' },
   'end-modal': {
@@ -104,7 +106,10 @@ const {
   resignGame,
   offerDraw,
   undoMove,
-  resetGame
+  resetGame,
+  formatClock,
+  setTimeControl,
+  tickClock
 } = await import('../web/hud.js');
 const { handleSquareClick } = await import('../web/input.js');
 
@@ -234,4 +239,56 @@ test('offerDraw vs AI is accepted when position is late game or AI is not winnin
   assert.ok(state.matchResult.title.includes('DRAW ACCEPTED'));
 
   state.game.history = origHist;
+});
+
+test('formatClock formats seconds into MM:SS', () => {
+  assert.equal(formatClock(300), '05:00');
+  assert.equal(formatClock(65), '01:05');
+  assert.equal(formatClock(9), '00:09');
+  assert.equal(formatClock(0), '00:00');
+  assert.equal(formatClock(-5), '00:00');
+});
+
+test('setTimeControl configures clocks and toggles visibility', () => {
+  setTimeControl(300);
+  assert.equal(state.timeControl, 300);
+  assert.equal(state.clockWhite, 300);
+  assert.equal(state.clockBlack, 300);
+  assert.equal(mockElements['clock-white'].style.display, 'inline-block');
+  assert.equal(mockElements['clock-black'].style.display, 'inline-block');
+  assert.equal(mockElements['clock-white'].textContent, '05:00');
+
+  setTimeControl(0);
+  assert.equal(state.timeControl, 0);
+  assert.equal(mockElements['clock-white'].style.display, 'none');
+  assert.equal(mockElements['clock-black'].style.display, 'none');
+});
+
+test('tickClock counts down active player when match is in progress', () => {
+  state.game = new Chess();
+  state.matchResult = null;
+  state.game.move('e4'); // 1 move played: now Black's turn
+  setTimeControl(300);
+
+  // Black's turn: ticking 2 seconds should decrement clockBlack
+  tickClock(2);
+  assert.equal(state.clockWhite, 300);
+  assert.equal(state.clockBlack, 298);
+
+  state.game.move('e5'); // 2 moves played: now White's turn
+  tickClock(3);
+  assert.equal(state.clockWhite, 297);
+  assert.equal(state.clockBlack, 298);
+});
+
+test('tickClock flag fall triggers loss on time', () => {
+  state.game = new Chess();
+  state.game.move('e4'); // Black's turn
+  setTimeControl(10);
+  state.matchResult = null;
+
+  tickClock(12); // Exceeds remaining 10s for Black
+  assert.equal(state.clockBlack, 0);
+  assert.ok(state.matchResult);
+  assert.ok(state.matchResult.status.includes('MARBLE ORDER WINS ON TIME'));
 });

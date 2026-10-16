@@ -20,6 +20,9 @@ export const state = {
   pendingPromotion: null,
   resetArmedUntil: 0,
   matchResult: null,
+  timeControl: 0,
+  clockWhite: 0,
+  clockBlack: 0,
 
   // Camera / View state
   camYaw: 0,

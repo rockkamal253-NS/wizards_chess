@@ -106,6 +106,7 @@ export function updateHUD() {
       ledger.scrollTop = ledger.scrollHeight;
     }
   }
+  updateClockUI();
 }
 
 export function clearSelection() {
@@ -142,6 +143,8 @@ export function resetGame() {
   if (state.isAnimating) return;
   state.gen++;
   state.matchResult = null;
+  state.clockWhite = state.timeControl;
+  state.clockBlack = state.timeControl;
   state.game.reset();
   clearSelection();
   syncBoardFull(scene);
@@ -321,4 +324,70 @@ export function offerDraw() {
   updateHUD();
   showToast('AI accepted the draw offer', 'info');
   return true;
+}
+
+export function formatClock(sec) {
+  const s = Math.max(0, Math.ceil(sec));
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+}
+
+export function updateClockUI() {
+  if (!dom.clockWhite || !dom.clockBlack) return;
+  if (state.timeControl <= 0) {
+    dom.clockWhite.style.display = 'none';
+    dom.clockBlack.style.display = 'none';
+    return;
+  }
+  dom.clockWhite.style.display = 'inline-block';
+  dom.clockBlack.style.display = 'inline-block';
+  dom.clockWhite.textContent = formatClock(state.clockWhite);
+  dom.clockBlack.textContent = formatClock(state.clockBlack);
+  dom.clockWhite.classList.toggle('low-time', state.clockWhite <= 30 && state.clockWhite > 0);
+  dom.clockBlack.classList.toggle('low-time', state.clockBlack <= 30 && state.clockBlack > 0);
+}
+
+export function setTimeControl(seconds) {
+  state.timeControl = seconds;
+  state.clockWhite = seconds;
+  state.clockBlack = seconds;
+  state.matchResult = null;
+  document.querySelectorAll('#time-group .md-chip').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.time, 10) === seconds);
+  });
+  updateClockUI();
+}
+
+export function tickClock(dt) {
+  if (state.timeControl <= 0 || state.game.game_over() || state.matchResult) return;
+  if (state.game.history().length === 0) return;
+
+  const turn = state.game.turn();
+  if (turn === 'w') {
+    state.clockWhite = Math.max(0, state.clockWhite - dt);
+    if (state.clockWhite <= 0) {
+      state.gen++;
+      state.matchResult = {
+        status: 'OBSIDIAN GUARD WINS ON TIME',
+        title: 'TIME EXPIRED',
+        sub: 'The Marble Order ran out of time.'
+      };
+      updateHUD();
+      showToast('Time expired! Obsidian Guard wins on time.', 'warn');
+    }
+  } else {
+    state.clockBlack = Math.max(0, state.clockBlack - dt);
+    if (state.clockBlack <= 0) {
+      state.gen++;
+      state.matchResult = {
+        status: 'MARBLE ORDER WINS ON TIME',
+        title: 'TIME EXPIRED',
+        sub: 'The Obsidian Guard ran out of time.'
+      };
+      updateHUD();
+      showToast('Time expired! Marble Order wins on time.', 'warn');
+    }
+  }
+  updateClockUI();
 }

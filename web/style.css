@@ -297,4 +297,20 @@
   border-color: var(--md-gold);
 }
 
+.clock-display {
+  font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--md-outline);
+  color: var(--md-text);
+  letter-spacing: 0.5px;
+}
+.clock-display.low-time {
+  border-color: #FF4D64;
+  color: #FF4D64;
+}
+
 

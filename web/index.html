@@ -37,6 +37,13 @@
         <button class="md-chip" data-side="b">Black</button>
       </div>
 
+      <div class="seg-pill" id="time-group">
+        <span class="seg-label">Clock</span>
+        <button class="md-chip active" data-time="0">None</button>
+        <button class="md-chip" data-time="300">5m</button>
+        <button class="md-chip" data-time="600">10m</button>
+      </div>
+
 
       <div class="seg-pill">
         <span class="seg-label">View</span>
@@ -66,7 +73,10 @@
       <div class="faction-card active-turn" id="card-white">
         <div class="faction-header">
           <span style="color:#F5E6C4;">⚪ MARBLE ORDER</span>
-          <span class="adv-pill" id="adv-white">+0</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span class="clock-display" id="clock-white" style="display:none;">00:00</span>
+            <span class="adv-pill" id="adv-white">+0</span>
+          </div>
         </div>
         <div class="captured-tray" id="cap-white">—</div>
       </div>
@@ -78,7 +88,10 @@
       <div class="faction-card" id="card-black">
         <div class="faction-header">
           <span style="color:#FF7A8A;">⚫ OBSIDIAN GUARD</span>
-          <span class="adv-pill" id="adv-black">+0</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span class="clock-display" id="clock-black" style="display:none;">00:00</span>
+            <span class="adv-pill" id="adv-black">+0</span>
+          </div>
         </div>
         <div class="captured-tray" id="cap-black">—</div>
       </div>
