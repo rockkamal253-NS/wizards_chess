@@ -21,7 +21,12 @@ export function updateHUD() {
   if (dom.cardBlack) dom.cardBlack.classList.toggle('active-turn', !isWhiteTurn);
   if (badgeEl) badgeEl.classList.toggle('in-check', state.game.in_check());
 
-  if (state.game.in_checkmate()) {
+  if (state.matchResult) {
+    if (statusEl) statusEl.textContent = state.matchResult.status;
+    if (dom.modalTitle) dom.modalTitle.textContent = state.matchResult.title;
+    if (dom.modalSub) dom.modalSub.textContent = state.matchResult.sub;
+    if (modal) modal.classList.add('visible');
+  } else if (state.game.in_checkmate()) {
     const winner = isWhiteTurn ? 'OBSIDIAN GUARD' : 'MARBLE ORDER';
     if (statusEl) statusEl.textContent = `CHECKMATE — ${winner} WINS`;
     if (dom.modalTitle) dom.modalTitle.textContent = 'CHECKMATE';
@@ -113,7 +118,14 @@ export function clearSelection() {
 }
 
 export function undoMove() {
-  if (state.isAnimating || state.game.history().length === 0) return;
+  if (state.isAnimating) return;
+  if (state.matchResult) {
+    state.matchResult = null;
+    clearSelection();
+    updateHUD();
+    return;
+  }
+  if (state.game.history().length === 0) return;
   state.gen++; // invalidates any in-flight AI / hint result
   state.game.undo();
   if (state.aiDepth > 0 && state.game.turn() !== state.humanColor && state.game.history().length > 0) {
@@ -129,6 +141,7 @@ export function undoMove() {
 export function resetGame() {
   if (state.isAnimating) return;
   state.gen++;
+  state.matchResult = null;
   state.game.reset();
   clearSelection();
   syncBoardFull(scene);
@@ -233,6 +246,7 @@ export function importFen(fenString) {
   }
 
   state.gen++;
+  state.matchResult = null;
   state.game.load(str);
   clearSelection();
   syncBoardFull(scene);
@@ -241,5 +255,70 @@ export function importFen(fenString) {
   closeIoModal();
   showToast('FEN position loaded successfully', 'info');
   triggerAI();
+  return true;
+}
+
+export function resignGame() {
+  if (state.isAnimating || state.game.game_over() || state.matchResult) return;
+  const winner = state.humanColor === 'w' ? 'OBSIDIAN GUARD' : 'MARBLE ORDER';
+  state.gen++;
+  state.matchResult = {
+    status: `RESIGNATION — ${winner} WINS`,
+    title: 'RESIGNATION',
+    sub: `${state.humanColor === 'w' ? 'Marble Order' : 'Obsidian Guard'} surrendered the Cathedral Sanctuary.`
+  };
+  clearSelection();
+  updateHUD();
+  showToast('You have resigned the match', 'info');
+}
+
+export function offerDraw() {
+  if (state.isAnimating || state.game.game_over() || state.matchResult) return false;
+  if (state.aiDepth === 0) {
+    state.gen++;
+    state.matchResult = {
+      status: 'MATCH DRAWN BY MUTUAL AGREEMENT',
+      title: 'DRAW AGREED',
+      sub: 'Both commanders agreed to a peaceful truce.'
+    };
+    clearSelection();
+    updateHUD();
+    showToast('Match drawn by mutual agreement', 'info');
+    return true;
+  }
+
+  const hist = state.game.history();
+  if (hist.length < 10) {
+    showToast('AI declines draw offer — opening phase is still underway', 'warn');
+    return false;
+  }
+
+  let wMat = 0, bMat = 0;
+  for (let r = 1; r <= 8; r++) {
+    for (let f = 0; f < 8; f++) {
+      const p = state.game.get(FILES[f] + r);
+      if (p) {
+        if (p.color === 'w') wMat += VALS[p.type];
+        else bMat += VALS[p.type];
+      }
+    }
+  }
+  const diff = wMat - bMat;
+  const aiAdvantage = state.humanColor === 'w' ? -diff : diff;
+
+  if (aiAdvantage >= 2) {
+    showToast('AI declines draw offer — it holds tactical advantage', 'warn');
+    return false;
+  }
+
+  state.gen++;
+  state.matchResult = {
+    status: 'MATCH DRAWN BY AGREEMENT',
+    title: 'DRAW ACCEPTED',
+    sub: 'The Sanctuary AI has accepted your truce offer.'
+  };
+  clearSelection();
+  updateHUD();
+  showToast('AI accepted the draw offer', 'info');
   return true;
 }

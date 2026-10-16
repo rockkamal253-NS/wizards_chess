@@ -23,7 +23,14 @@ const mockElements = {
   'card-black': { classList: { toggle() {} } },
   'hover-sq': { textContent: '' },
   'hover-piece': { textContent: '' },
-  'end-modal': { classList: { add() {}, remove() {} } },
+  'end-modal': {
+    classList: {
+      _classes: new Set(),
+      add(c) { this._classes.add(c); },
+      remove(c) { this._classes.delete(c); },
+      contains(c) { return this._classes.has(c); }
+    }
+  },
   'modal-title': { textContent: '' },
   'modal-sub': { textContent: '' },
   'cap-white': { textContent: '' },
@@ -88,7 +95,18 @@ THREE.PMREMGenerator = class {
 globalThis.THREE = THREE;
 
 const { state } = await import('../web/state.js');
-const { openIoModal, closeIoModal, exportFen, exportPgn, importFen } = await import('../web/hud.js');
+const {
+  openIoModal,
+  closeIoModal,
+  exportFen,
+  exportPgn,
+  importFen,
+  resignGame,
+  offerDraw,
+  undoMove,
+  resetGame
+} = await import('../web/hud.js');
+const { handleSquareClick } = await import('../web/input.js');
 
 test('IO modal open/close controls visibility and populates textarea', () => {
   state.game = new Chess();
@@ -148,4 +166,72 @@ test('importFen rejects empty FEN string', () => {
   const ok = importFen('   ');
   assert.equal(ok, false);
   assert.equal(state.game.fen(), beforeFen);
+});
+
+test('resignGame sets matchResult and prevents moves until reset', () => {
+  state.game = new Chess();
+  state.humanColor = 'w';
+  state.matchResult = null;
+  state.isAnimating = false;
+  state.pendingPromotion = null;
+  const initialGen = state.gen;
+
+  resignGame();
+  assert.ok(state.matchResult);
+  assert.ok(state.matchResult.status.includes('OBSIDIAN GUARD WINS'));
+  assert.ok(state.gen > initialGen);
+  assert.equal(mockElements['end-modal'].classList.contains('visible'), true);
+
+  // Moves should now be blocked
+  handleSquareClick('e2');
+  assert.equal(state.selectedSq, null);
+
+  // Undo cancels resignation
+  undoMove();
+  assert.equal(state.matchResult, null);
+});
+
+test('offerDraw in 2-player mode is accepted immediately by mutual agreement', () => {
+  state.game = new Chess();
+  state.aiDepth = 0;
+  state.matchResult = null;
+
+  const accepted = offerDraw();
+  assert.equal(accepted, true);
+  assert.ok(state.matchResult);
+  assert.ok(state.matchResult.title.includes('DRAW AGREED'));
+});
+
+test('offerDraw vs AI is declined in early opening', () => {
+  state.game = new Chess();
+  state.aiDepth = 2;
+  state.humanColor = 'w';
+  state.matchResult = null;
+
+  // 0 moves played (< 10)
+  const accepted = offerDraw();
+  assert.equal(accepted, false);
+  assert.equal(state.matchResult, null);
+});
+
+test('offerDraw vs AI is accepted when position is late game or AI is not winning', () => {
+  state.game = new Chess();
+  state.aiDepth = 2;
+  state.humanColor = 'w';
+  state.matchResult = null;
+
+  // Load a 30-move position with equal material or AI down
+  state.game.load('4k3/8/8/8/8/8/4P3/4K3 w - - 0 35');
+  // White has pawn (+1), AI has nothing (-1 disadvantage for AI)
+  // Need history length >= 10:
+  // Let's mock history to have length >= 10
+  const origHist = state.game.history.bind(state.game);
+  state.game.history = () => new Array(20).fill('e4');
+
+  const accepted = offerDraw();
+  assert.equal(accepted, true);
+  assert.ok(state.matchResult);
+  assert.ok(state.matchResult.title.includes('DRAW ACCEPTED'));
+
+  state.game.history = origHist;
 });

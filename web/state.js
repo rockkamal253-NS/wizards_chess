@@ -19,6 +19,7 @@ export const state = {
   pointerState: null,
   pendingPromotion: null,
   resetArmedUntil: 0,
+  matchResult: null,
 
   // Camera / View state
   camYaw: 0,

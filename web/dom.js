@@ -36,6 +36,8 @@ export const dom = {
   get modalBtnReset() { return document.getElementById('modal-btn-reset'); },
   get modalBtnUndo() { return document.getElementById('modal-btn-undo'); },
   get modalBtnClose() { return document.getElementById('modal-btn-close'); },
+  get btnDraw() { return document.getElementById('btn-draw'); },
+  get btnResign() { return document.getElementById('btn-resign'); },
   get btnIo() { return document.getElementById('btn-io'); },
   get ioModal() { return document.getElementById('io-modal'); },
   get ioTextarea() { return document.getElementById('io-textarea'); },

@@ -27,7 +27,9 @@ import {
   closeIoModal,
   exportFen,
   exportPgn,
-  importFen
+  importFen,
+  resignGame,
+  offerDraw
 } from './hud.js';
 import { initCameraControls, setCameraPreset, flipCamera } from './camera.js';
 
@@ -228,6 +230,8 @@ function bindUIEvents() {
   if (dom.modalBtnUndo) dom.modalBtnUndo.addEventListener('click', undoMove);
   if (dom.modalBtnClose) dom.modalBtnClose.addEventListener('click', closeModal);
 
+  if (dom.btnDraw) dom.btnDraw.addEventListener('click', offerDraw);
+  if (dom.btnResign) dom.btnResign.addEventListener('click', resignGame);
   if (dom.btnIo) dom.btnIo.addEventListener('click', openIoModal);
   if (dom.btnExportFen) dom.btnExportFen.addEventListener('click', exportFen);
   if (dom.btnExportPgn) dom.btnExportPgn.addEventListener('click', exportPgn);
@@ -296,6 +300,8 @@ window.closeIoModal = closeIoModal;
 window.exportFen = exportFen;
 window.exportPgn = exportPgn;
 window.importFen = importFen;
+window.resignGame = resignGame;
+window.offerDraw = offerDraw;
 
 Object.defineProperty(window, 'camDist', {
   get: () => state.camDist,

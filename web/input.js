@@ -12,7 +12,7 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 export function aiTurn() {
-  return state.aiDepth > 0 && !state.game.game_over() && state.game.turn() !== state.humanColor;
+  return state.aiDepth > 0 && !state.game.game_over() && !state.matchResult && state.game.turn() !== state.humanColor;
 }
 
 export function getSquareUnderPointer(clientX, clientY, camera) {
@@ -85,7 +85,7 @@ export function endPointer() {
 }
 
 export function onBoardClick(clientX, clientY, camera) {
-  if (state.isAnimating || state.game.game_over() || aiTurn()) return;
+  if (state.isAnimating || state.game.game_over() || state.matchResult || aiTurn()) return;
   const sq = getSquareUnderPointer(clientX, clientY, camera);
   if (sq) handleSquareClick(sq);
 }
@@ -117,7 +117,7 @@ export function selectPromotion(piece) {
 }
 
 export function handleSquareClick(sq) {
-  if (state.pendingPromotion) return;
+  if (state.pendingPromotion || state.matchResult) return;
   state.hintMove = null;
   const vm = state.validMoves.find(m => m.to === sq);
   if (vm) {
