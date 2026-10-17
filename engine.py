@@ -203,25 +203,24 @@ class Searcher:
         return best, cands
 
 
-def build_board(fen: str, history: list[str] | None = None) -> chess.Board:
-    """Construct a chess.Board with move history if provided."""
+def build_board(fen: str, history: list[str] | None = None, start_fen: str | None = None) -> chess.Board:
+    """Return a Board at `fen` that carries the move stack when `history` is consistent with it.
+
+    `history` is the list of UCI moves played from `start_fen` (None = the standard start position).
+    The replayed board is used only if it lands exactly on `fen`; anything else (stale, truncated or
+    illegal history) falls back to a plain Board(fen), so a bad history can never change the position.
+    """
+    target = chess.Board(fen)
     if history:
         try:
-            b = chess.Board()
+            b = chess.Board(start_fen) if start_fen else chess.Board()
             for m in history:
                 b.push_uci(m)
-            if b.fen() == fen or b.board_fen() == chess.Board(fen).board_fen():
+            if b.epd() == target.epd():
                 return b
         except Exception:
             pass
-        try:
-            b = chess.Board(fen)
-            for m in history:
-                b.push_uci(m)
-            return b
-        except Exception:
-            pass
-    return chess.Board(fen)
+    return target
 
 
 def choose_move(
@@ -230,9 +229,10 @@ def choose_move(
     jitter: int = 0,
     time_budget: float = TIME_BUDGET,
     history: list[str] | None = None,
+    start_fen: str | None = None,
 ):
     """Pick a move for the side to move in `fen`. Returns a dict or None."""
-    board = build_board(fen, history)
+    board = build_board(fen, history, start_fen)
     if board.is_game_over(claim_draw=False):
         return None
     depth = max(1, min(int(depth), MAX_DEPTH))

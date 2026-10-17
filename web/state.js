@@ -2,6 +2,7 @@
 export const state = {
   // Authoritative game state
   game: new Chess(),
+  startFen: null,   // FEN the current game began from; null = standard start. Sent to the engine with the move history.
   humanColor: 'w',
   aiDepth: 2,
   promoPiece: 'q',

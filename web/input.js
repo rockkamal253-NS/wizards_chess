@@ -209,7 +209,7 @@ export async function triggerAI() {
   const history = state.game.history({ verbose: true }).map(m => m.from + m.to + (m.promotion || ''));
   try {
     if (window.pywebview && window.pywebview.api) {
-      aiMove = await window.pywebview.api.compute_ai_move(fenAtStart, state.aiDepth, history);
+      aiMove = await window.pywebview.api.compute_ai_move(fenAtStart, state.aiDepth, history, state.startFen);
     }
   } catch (e) {
     bridgeError = e;
@@ -252,7 +252,7 @@ export async function showTacticalHint() {
   let hintError = null;
   try {
     if (window.pywebview && window.pywebview.api) {
-      suggestion = await window.pywebview.api.compute_hint(fenAtStart, history);
+      suggestion = await window.pywebview.api.compute_hint(fenAtStart, history, state.startFen);
     }
   } catch (e) {
     hintError = e;

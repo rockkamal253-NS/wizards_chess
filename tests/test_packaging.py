@@ -2,6 +2,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -28,7 +30,7 @@ def test_built_binary_smoke_test():
     exe_name = "wizards_chess.exe" if sys.platform == "win32" else "wizards_chess"
     exe_path = ROOT / "dist" / exe_name
     if not exe_path.exists():
-        return  # skipped in environments where pyinstaller build hasn't run yet
+        pytest.skip("no PyInstaller build in dist/ (run: pyinstaller wizards_chess.spec)")
 
     proc = subprocess.run(
         [str(exe_path), "--smoke-test"],

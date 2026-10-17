@@ -1,7 +1,7 @@
 """Wizard's Chess — Gothic Cathedral (desktop edition).
 
 Run:  pip install -r requirements.txt && python app.py
-The UI lives in web/ (index.html, style.css, game.js, vendor/). Nothing is written to disk at runtime.
+The UI lives in web/ (index.html, style.css, ES modules starting at main.js, vendor/). Nothing is written to disk at runtime.
 """
 import sys
 from pathlib import Path
@@ -22,17 +22,18 @@ class NativeChessBridge:
     def __init__(self):
         self._window = None
 
-    def compute_ai_move(self, fen: str, depth: int = 2, history: list[str] | None = None):
+    def compute_ai_move(self, fen: str, depth: int = 2, history: list[str] | None = None,
+                        start_fen: str | None = None):
         try:
             depth = int(depth)
-            return choose_move(fen, depth, jitter=JITTER.get(depth, 10), history=history)
+            return choose_move(fen, depth, jitter=JITTER.get(depth, 10), history=history, start_fen=start_fen)
         except Exception as exc:  # bad FEN etc. -> JS falls back to a random legal move
             print("compute_ai_move failed:", exc, file=sys.stderr)
             return None
 
-    def compute_hint(self, fen: str, history: list[str] | None = None):
+    def compute_hint(self, fen: str, history: list[str] | None = None, start_fen: str | None = None):
         try:
-            return choose_move(fen, 2, jitter=0, time_budget=3.0, history=history)
+            return choose_move(fen, 2, jitter=0, time_budget=3.0, history=history, start_fen=start_fen)
         except Exception as exc:
             print("compute_hint failed:", exc, file=sys.stderr)
             return None
