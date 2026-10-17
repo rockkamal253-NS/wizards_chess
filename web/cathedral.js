@@ -7,10 +7,11 @@ import { cg, SQ_SIZE, obsidianTex, MAT_MARBLE_BRONZE } from './materials.js';
 export function buildCathedral(scene) {
   const cath = new THREE.Group();
 
-  const hemi = new THREE.HemisphereLight(0x8899EE, 0x161222, 0.42);
+  // Balanced Gothic moonlight & sanctuary stone lighting (calibrated for sRGB pipeline)
+  const hemi = new THREE.HemisphereLight(0x7687B5, 0x14121A, 0.38);
   scene.add(hemi);
 
-  const dirLight = new THREE.DirectionalLight(0xE6ECFF, 1.05);
+  const dirLight = new THREE.DirectionalLight(0xDCE4F0, 1.0);
   state.sunLight = dirLight;
   dirLight.position.set(12, 24, 13);
   dirLight.castShadow = true;
