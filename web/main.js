@@ -17,14 +17,16 @@ import {
   updateHUD,
   applyShadowQuality,
   toggleQuality,
-  setSide,
   toggleFull,
   toggleAudio,
-  undoMove,
-  resetGame,
   closeModal,
   openIoModal,
-  closeIoModal,
+  closeIoModal
+} from './hud.js';
+import {
+  setSide,
+  undoMove,
+  resetGame,
   exportFen,
   exportPgn,
   importFen,
@@ -36,7 +38,7 @@ import {
   setReplayPly,
   stepReplay,
   getReplayGame
-} from './hud.js';
+} from './commands.js';
 import { initCameraControls, setCameraPreset, flipCamera } from './camera.js';
 import { saveSettings, loadSettings, applyLoadedSettings } from './settings.js';
 import { shortGpuName } from './gpu.js';

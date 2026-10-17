@@ -108,7 +108,9 @@ const { state } = await import('../web/state.js');
 const { sfx } = await import('../web/audio.js');
 const {
   openIoModal,
-  closeIoModal,
+  closeIoModal
+} = await import('../web/hud.js');
+const {
   exportFen,
   exportPgn,
   importFen,
@@ -122,7 +124,7 @@ const {
   setReplayPly,
   stepReplay,
   getReplayGame
-} = await import('../web/hud.js');
+} = await import('../web/commands.js');
 const { handleSquareClick } = await import('../web/input.js');
 const { saveSettings, loadSettings } = await import('../web/settings.js');
 

@@ -40,10 +40,12 @@ graph TD
 | `materials.js` | renderer/scene/camera, `cg()`/`cmat()` caches, shared materials, `SQ_SIZE` | textures |
 | `cathedral.js` | Room, braziers, trim, lights (`buildCathedral`) | materials |
 | `pieces.js` | One 3D mesh per piece type/colour (`buildPieceMesh`) | materials |
-| `board.js` | Tiles, emissive highlights (`tintTile`), markers, `syncBoardFull`, capture shards | materials, pieces, state |
-| `input.js` | Raycast picking, click-vs-orbit pointer machine, promotion dialog, `executeMoveAnimated`, `triggerAI`, hints | audio, board, dom, hud (**circular**, see debt), state, toast |
-| `hud.js` | Status, ledger, captured trays, modals, undo/reset, side/quality, FEN/PGN, resign/draw, clocks, replay | audio, board, dom, input (**circular**), materials, settings, state, toast |
-| `camera.js` | Orbit, presets, hotkeys | dom, hud, input, state |
+| `board.js` | Tiles, emissive highlights (`tintTile`), markers, `syncBoardFull`, `clearSelection`, capture shards | materials, pieces, state |
+| `input.js` | Raycast picking, click-vs-orbit pointer machine, promotion dialog, `executeMoveAnimated`, `triggerAI`, hints | audio, board, dom, hud, materials, state, toast |
+| `commands.js` | Game orchestration: `undoMove`, `resetGame`, `resignGame`, `offerDraw`, `importFen`, clocks, replay | audio, board, dom, hud, input, match, materials, settings, state, toast |
+| `match.js` | Pure rules/match calculations: clocks, material evaluation, draw/resign outcomes, FEN validator | – |
+| `hud.js` | Status, ledger, captured trays, modals, clock display, quality/audio toggles | audio, board, dom, match, settings, state |
+| `camera.js` | Orbit, presets, hotkeys | commands, dom, hud, state |
 | `settings.js` | Whitelisted `localStorage` persistence (try/catch everywhere) | state, audio |
 | `toast.js` | Non-blocking notifications | – |
 | `gpu.js` | `shortGpuName()` for the footer (unit-tested) | – |
@@ -58,8 +60,8 @@ wizards_chess/
 ├── README.md  HANDOFF_NOTES.md  ANTIGRAVITY_BRIEF.md  docs/
 ├── tests/  test_engine.py  test_packaging.py  test_*.test.mjs  visual_regression.mjs  visual_baselines/
 └── web/  index.html  style.css  main.js  state.js  dom.js  audio.js  textures.js  materials.js
-          cathedral.js  pieces.js  board.js  input.js  hud.js  camera.js  settings.js  toast.js  gpu.js
-          vendor/{three.min.js,chess.js}
+          cathedral.js  pieces.js  board.js  input.js  commands.js  match.js  hud.js  camera.js
+          settings.js  toast.js  gpu.js  vendor/{three.min.js,chess.js}
 ```
 
 ## Key decisions & invariants (do not undo without discussion)
@@ -76,7 +78,7 @@ wizards_chess/
 - **Engine history needs the start position:** the bridge sends `history` (UCI moves) plus `start_fen` (null = standard start). `build_board` replays them and uses the result only if it lands exactly on the current FEN; otherwise it silently falls back to the plain position. Never replay history onto the *current* FEN.
 - **FEN import is verified, not trusted:** chess.js silently drops pieces it cannot place (e.g. a second king), so `importFen` compares the loaded placement with the typed text and requires exactly one king per side.
 - **Toolbar layout:** `.hud-root` has `grid-template-columns: minmax(0, 1fr)` and the toolbar wraps. Without the `minmax(0, ...)` the grid column grows to the toolbar's content width and pushes controls and the right-hand panel off-screen.
+- **Acyclic module dependencies:** Circular dependency between `input.js` and `hud.js` eliminated by extracting `commands.js` (orchestration) and `match.js` (pure rules logic testable without DOM).
 
 ## Known structural debt
-- **`input.js` ⇄ `hud.js` import each other** (and `camera.js` imports both). It works because they only call each other's functions at runtime, never at load time; any top-level use of the other module's exports would break. Fix by moving game commands (`undoMove`, `resetGame`, `triggerAI`, ...) into a `commands.js` that both import.
-- Rules logic (resign/draw/clock decisions) still lives in `hud.js` next to DOM code; extracting a pure `match.js` would make it testable without DOM mocks.
+- *Resolved:* `commands.js` and `match.js` were extracted, eliminating the previous `input.js` ⇄ `hud.js` circular import and enabling pure headless match tests.

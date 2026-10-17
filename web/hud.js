@@ -1,15 +1,16 @@
 import { state } from './state.js';
 import { dom } from './dom.js';
 import { sfx } from './audio.js';
-import { FILES, syncBoardFull, rebuildTacticalMarkers } from './board.js';
-import { scene } from './materials.js';
-import { triggerAI } from './input.js';
-import { showToast } from './toast.js';
+import { FILES } from './board.js';
 import { saveSettings } from './settings.js';
+import { VALS, formatClock } from './match.js';
 
 const SYMBOLS_W = { p: '♙', n: '♘', b: '♗', r: '♖', q: '♕' };
 const SYMBOLS_B = { p: '♟', n: '♞', b: '♝', r: '♜', q: '♛' };
-const VALS = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+
+// ============================================================================
+// HUD DISPLAY, MODALS & TELEMETRY
+// ============================================================================
 
 export function updateHUD() {
   const statusEl = dom.statusText;
@@ -58,128 +59,104 @@ export function updateHUD() {
     const side = isWhiteTurn ? 'MARBLE ORDER (WHITE)' : 'OBSIDIAN GUARD (BLACK)';
     const chk = state.game.in_check() ? ' • CHECK!' : '';
     if (statusEl) statusEl.textContent = `${side}${chk}`;
-    if (dotEl) dotEl.style.background = isWhiteTurn ? '#F2C96D' : '#FF4D64';
   }
 
-  if (state.replayPly !== null) {
-    const replayText = state.replayPly === -1 ? 'START' : `PLY ${state.replayPly + 1}`;
-    if (statusEl) statusEl.textContent = `REPLAY (${replayText}) • Click board or ➔ to resume live`;
+  if (dotEl) {
+    dotEl.style.background = isWhiteTurn ? '#EDE8DF' : '#14121E';
+    dotEl.style.boxShadow = isWhiteTurn
+      ? '0 0 10px rgba(255,255,255,0.85)'
+      : '0 0 10px rgba(180,40,60,0.85)';
   }
 
-  // Material Advantage & Captured Trays
-  const hist = state.game.history({ verbose: true });
-  const capByWhite = [];
-  const capByBlack = [];
-  hist.forEach(m => {
-    if (m.captured) {
-      if (m.color === 'w') capByWhite.push(SYMBOLS_B[m.captured] || '');
-      else capByBlack.push(SYMBOLS_W[m.captured] || '');
-    }
-  });
-  if (dom.capWhite) dom.capWhite.textContent = capByWhite.length ? capByWhite.join(' ') : '—';
-  if (dom.capBlack) dom.capBlack.textContent = capByBlack.length ? capByBlack.join(' ') : '—';
+  // Material and captured piece counters
+  const curCounts = { p: 0, n: 0, b: 0, r: 0, q: 0, k: 0 };
+  const maxCounts = { p: 8, n: 2, b: 2, r: 2, q: 1, k: 1 };
+  let whiteMat = 0;
+  let blackMat = 0;
 
-  let wMat = 0, bMat = 0;
   for (let r = 1; r <= 8; r++) {
     for (let f = 0; f < 8; f++) {
       const p = state.game.get(FILES[f] + r);
       if (p) {
-        if (p.color === 'w') wMat += VALS[p.type];
-        else bMat += VALS[p.type];
+        if (p.color === 'w') {
+          curCounts[p.type] = (curCounts[p.type] || 0) + 1;
+          whiteMat += VALS[p.type];
+        } else {
+          blackMat += VALS[p.type];
+        }
       }
     }
   }
-  const diff = wMat - bMat;
-  if (dom.advWhite) dom.advWhite.textContent = diff >= 0 ? `+${diff}` : `${diff}`;
-  if (dom.advBlack) dom.advBlack.textContent = diff <= 0 ? `+${-diff}` : `${-diff}`;
-  const pct = Math.max(10, Math.min(90, 50 + diff * 4));
-  if (dom.evalFill) dom.evalFill.style.width = `${pct}%`;
 
-  // 2-Column Move Ledger
-  const ledger = dom.ledgerList;
-  if (dom.moveCount) {
-    if (state.replayPly !== null) {
-      dom.moveCount.textContent = `Replay (${state.replayPly === -1 ? 'Start' : state.replayPly + 1}/${hist.length})`;
-    } else {
-      dom.moveCount.textContent = `Turn ${Math.floor(hist.length / 2) + 1}`;
-    }
-  }
-  if (ledger) {
-    if (hist.length === 0) {
-      ledger.innerHTML = '<div style="color:var(--md-muted); font-size:0.72rem;">Click any Marble piece or square to begin.</div>';
-    } else {
-      let html = '';
-      const activePly = state.replayPly !== null ? state.replayPly : (hist.length - 1);
-      for (let i = 0; i < hist.length; i += 2) {
-        const wSan = hist[i].san;
-        const bSan = hist[i + 1] ? hist[i + 1].san : '';
-        const wActive = activePly === i ? ' active-ply' : '';
-        const bActive = activePly === (i + 1) ? ' active-ply' : '';
-        html += `<div class="ledger-row">` +
-          `<span>${(i / 2) + 1}.</span>` +
-          `<span class="ledger-san${wActive}" data-ply="${i}">${wSan}</span>` +
-          (bSan ? `<span class="ledger-san${bActive}" data-ply="${i + 1}">${bSan}</span>` : '<span></span>') +
-          `</div>`;
-      }
-      ledger.innerHTML = html;
-      const activeEl = typeof ledger.querySelector === 'function' ? ledger.querySelector('.active-ply') : null;
-      if (activeEl && typeof activeEl.scrollIntoView === 'function') {
-        activeEl.scrollIntoView({ block: 'nearest' });
-      } else {
-        ledger.scrollTop = ledger.scrollHeight;
+  const whiteCaptured = [];
+  const blackCaptured = [];
+  ['q', 'r', 'b', 'n', 'p'].forEach(t => {
+    const lostWhite = Math.max(0, maxCounts[t] - (curCounts[t] || 0));
+    for (let i = 0; i < lostWhite; i++) whiteCaptured.push(SYMBOLS_W[t]);
+
+    let blackRemaining = 0;
+    for (let r = 1; r <= 8; r++) {
+      for (let f = 0; f < 8; f++) {
+        const p = state.game.get(FILES[f] + r);
+        if (p && p.color === 'b' && p.type === t) blackRemaining++;
       }
     }
+    const lostBlack = Math.max(0, maxCounts[t] - blackRemaining);
+    for (let i = 0; i < lostBlack; i++) blackCaptured.push(SYMBOLS_B[t]);
+  });
+
+  if (dom.capWhite) dom.capWhite.textContent = whiteCaptured.join(' ');
+  if (dom.capBlack) dom.capBlack.textContent = blackCaptured.join(' ');
+
+  const matDiff = whiteMat - blackMat;
+  if (dom.advWhite) dom.advWhite.textContent = matDiff > 0 ? `+${matDiff}` : '';
+  if (dom.advBlack) dom.advBlack.textContent = matDiff < 0 ? `+${Math.abs(matDiff)}` : '';
+
+  if (dom.evalFill) {
+    const pct = Math.max(5, Math.min(95, 50 + matDiff * 4));
+    dom.evalFill.style.height = `${pct}%`;
   }
+
+  // Move Chronicle Ledger
+  const history = state.game.history();
+  if (dom.moveCount) dom.moveCount.textContent = `${history.length} ply`;
+  if (dom.ledgerList) {
+    let ledgerHTML = '';
+    for (let i = 0; i < history.length; i += 2) {
+      const moveNum = Math.floor(i / 2) + 1;
+      const wMove = history[i] || '';
+      const bMove = history[i + 1] || '';
+      const wActive = state.replayPly === i ? 'active-ply' : '';
+      const bActive = state.replayPly === i + 1 ? 'active-ply' : '';
+      ledgerHTML += `
+        <div class="ledger-row">
+          <span class="ledger-num">${moveNum}.</span>
+          <span class="ledger-san ${wActive}" data-ply="${i}">${wMove}</span>
+          <span class="ledger-san ${bActive}" data-ply="${i + 1}">${bMove}</span>
+        </div>`;
+    }
+    dom.ledgerList.innerHTML = ledgerHTML;
+    if (state.replayPly === null) {
+      dom.ledgerList.scrollTop = dom.ledgerList.scrollHeight;
+    }
+  }
+
   updateClockUI();
 }
 
-export function clearSelection() {
-  state.lastMove = null;
-  state.selectedSq = null;
-  state.validMoves = [];
-  state.hintMove = null;
-  state.pendingPromotion = null;
-  if (dom.promoModal) dom.promoModal.classList.remove('visible');
-}
-
-export function undoMove() {
-  if (state.isAnimating) return;
-  state.replayPly = null;
-  state.replayGame = null;
-  if (state.matchResult) {
-    state.matchResult = null;
-    clearSelection();
-    updateHUD();
+export function updateClockUI() {
+  if (!dom.clockWhite || !dom.clockBlack) return;
+  if (state.timeControl <= 0) {
+    dom.clockWhite.style.display = 'none';
+    dom.clockBlack.style.display = 'none';
     return;
   }
-  if (state.game.history().length === 0) return;
-  state.gen++; // invalidates any in-flight AI / hint result
-  state.game.undo();
-  if (state.aiDepth > 0 && state.game.turn() !== state.humanColor && state.game.history().length > 0) {
-    state.game.undo();
-  }
-  clearSelection();
-  syncBoardFull(scene);
-  rebuildTacticalMarkers();
-  updateHUD();
-  triggerAI(); // no-op unless it is the AI's turn
-}
-
-export function resetGame() {
-  if (state.isAnimating) return;
-  state.gen++;
-  state.matchResult = null;
-  state.replayPly = null;
-  state.replayGame = null;
-  state.clockWhite = state.timeControl;
-  state.clockBlack = state.timeControl;
-  state.game.reset();
-  state.startFen = null;
-  clearSelection();
-  syncBoardFull(scene);
-  rebuildTacticalMarkers();
-  updateHUD();
-  triggerAI();
+  dom.clockWhite.style.display = 'inline-block';
+  dom.clockBlack.style.display = 'inline-block';
+  dom.clockWhite.textContent = formatClock(state.clockWhite);
+  dom.clockBlack.textContent = formatClock(state.clockBlack);
+  dom.clockWhite.classList.toggle('low-time', state.clockWhite <= 30 && state.clockWhite > 0);
+  dom.clockBlack.classList.toggle('low-time', state.clockBlack <= 30 && state.clockBlack > 0);
 }
 
 export function closeModal() {
@@ -209,18 +186,6 @@ export function toggleAudio() {
   saveSettings();
 }
 
-export function setSide(color) {
-  if (state.isAnimating) return;
-  state.humanColor = color;
-  document.querySelectorAll('#side-group .md-chip').forEach(b => {
-    b.classList.toggle('active', b.dataset.side === color);
-  });
-  const turn = 2 * Math.PI;
-  state.targetYaw = Math.round(state.targetYaw / turn) * turn + (color === 'b' ? Math.PI : 0);
-  resetGame();
-  saveSettings();
-}
-
 export function toggleFull() {
   if (window.pywebview && window.pywebview.api) {
     window.pywebview.api.toggle_fullscreen();
@@ -243,251 +208,5 @@ export function openIoModal() {
 export function closeIoModal() {
   if (dom.ioModal) {
     dom.ioModal.classList.remove('visible');
-  }
-}
-
-export function exportFen() {
-  const fen = state.game.fen();
-  if (dom.ioTextarea) dom.ioTextarea.value = fen;
-  if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(fen).catch(() => {});
-  }
-  showToast('FEN copied to clipboard', 'info');
-  return fen;
-}
-
-export function exportPgn() {
-  const pgn = state.game.pgn();
-  if (dom.ioTextarea) dom.ioTextarea.value = pgn;
-  if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(pgn).catch(() => {});
-  }
-  showToast('PGN copied to clipboard', 'info');
-  return pgn;
-}
-
-export function importFen(fenString) {
-  if (state.isAnimating) return false;
-  const str = (fenString !== undefined ? fenString : (dom.ioTextarea ? dom.ioTextarea.value : '')).trim();
-  if (!str) {
-    showToast('Please enter a valid FEN string', 'warn');
-    return false;
-  }
-  const testChess = new Chess();
-  const success = testChess.load(str);
-  if (!success) {
-    showToast('Invalid FEN position string', 'error');
-    return false;
-  }
-  // chess.js silently drops pieces it cannot place (e.g. a second king), so confirm it loaded exactly what was typed.
-  if (testChess.fen().split(' ')[0] !== str.split(/\s+/)[0]) {
-    showToast('Invalid position: the piece placement could not be loaded as written', 'error');
-    return false;
-  }
-  // ...and chess.js accepts positions without exactly one king per side; the rules and the engine do not.
-  const kings = { w: 0, b: 0 };
-  for (const row of testChess.board()) for (const p of row) if (p && p.type === 'k') kings[p.color]++;
-  if (kings.w !== 1 || kings.b !== 1) {
-    showToast('Invalid position: each side needs exactly one king', 'error');
-    return false;
-  }
-
-  state.gen++;
-  state.matchResult = null;
-  state.game.load(str);
-  state.startFen = state.game.fen();
-  clearSelection();
-  syncBoardFull(scene);
-  rebuildTacticalMarkers();
-  updateHUD();
-  closeIoModal();
-  showToast('FEN position loaded successfully', 'info');
-  triggerAI();
-  return true;
-}
-
-export function resignGame() {
-  if (state.isAnimating || state.game.game_over() || state.matchResult) return;
-  // Against the AI the human resigns; in two-player mode the side to move does.
-  const resigning = state.aiDepth === 0 ? state.game.turn() : state.humanColor;
-  const winner = resigning === 'w' ? 'OBSIDIAN GUARD' : 'MARBLE ORDER';
-  state.gen++;
-  state.matchResult = {
-    status: `RESIGNATION — ${winner} WINS`,
-    title: 'RESIGNATION',
-    sub: `${resigning === 'w' ? 'Marble Order' : 'Obsidian Guard'} surrendered the Cathedral Sanctuary.`
-  };
-  clearSelection();
-  updateHUD();
-  showToast(state.aiDepth === 0 ? 'Match resigned' : 'You have resigned the match', 'info');
-}
-
-export function offerDraw() {
-  if (state.isAnimating || state.game.game_over() || state.matchResult) return false;
-  if (state.aiDepth === 0) {
-    state.gen++;
-    state.matchResult = {
-      status: 'MATCH DRAWN BY MUTUAL AGREEMENT',
-      title: 'DRAW AGREED',
-      sub: 'Both commanders agreed to a peaceful truce.'
-    };
-    clearSelection();
-    updateHUD();
-    showToast('Match drawn by mutual agreement', 'info');
-    return true;
-  }
-
-  const hist = state.game.history();
-  if (hist.length < 10) {
-    showToast('AI declines draw offer — opening phase is still underway', 'warn');
-    return false;
-  }
-
-  let wMat = 0, bMat = 0;
-  for (let r = 1; r <= 8; r++) {
-    for (let f = 0; f < 8; f++) {
-      const p = state.game.get(FILES[f] + r);
-      if (p) {
-        if (p.color === 'w') wMat += VALS[p.type];
-        else bMat += VALS[p.type];
-      }
-    }
-  }
-  const diff = wMat - bMat;
-  const aiAdvantage = state.humanColor === 'w' ? -diff : diff;
-
-  if (aiAdvantage >= 2) {
-    showToast('AI declines draw offer — it holds tactical advantage', 'warn');
-    return false;
-  }
-
-  state.gen++;
-  state.matchResult = {
-    status: 'MATCH DRAWN BY AGREEMENT',
-    title: 'DRAW ACCEPTED',
-    sub: 'The Sanctuary AI has accepted your truce offer.'
-  };
-  clearSelection();
-  updateHUD();
-  showToast('AI accepted the draw offer', 'info');
-  return true;
-}
-
-export function formatClock(sec) {
-  const s = Math.max(0, Math.ceil(sec));
-  const m = Math.floor(s / 60);
-  const rem = s % 60;
-  return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
-}
-
-export function updateClockUI() {
-  if (!dom.clockWhite || !dom.clockBlack) return;
-  if (state.timeControl <= 0) {
-    dom.clockWhite.style.display = 'none';
-    dom.clockBlack.style.display = 'none';
-    return;
-  }
-  dom.clockWhite.style.display = 'inline-block';
-  dom.clockBlack.style.display = 'inline-block';
-  dom.clockWhite.textContent = formatClock(state.clockWhite);
-  dom.clockBlack.textContent = formatClock(state.clockBlack);
-  dom.clockWhite.classList.toggle('low-time', state.clockWhite <= 30 && state.clockWhite > 0);
-  dom.clockBlack.classList.toggle('low-time', state.clockBlack <= 30 && state.clockBlack > 0);
-}
-
-export function setTimeControl(seconds) {
-  state.timeControl = seconds;
-  state.clockWhite = seconds;
-  state.clockBlack = seconds;
-  state.matchResult = null;
-  document.querySelectorAll('#time-group .md-chip').forEach(b => {
-    b.classList.toggle('active', parseInt(b.dataset.time, 10) === seconds);
-  });
-  updateClockUI();
-}
-
-export function tickClock(dt) {
-  if (state.timeControl <= 0 || state.game.game_over() || state.matchResult) return;
-  if (state.game.history().length === 0) return;
-
-  const turn = state.game.turn();
-  if (turn === 'w') {
-    state.clockWhite = Math.max(0, state.clockWhite - dt);
-    if (state.clockWhite <= 0) {
-      state.gen++;
-      state.matchResult = {
-        status: 'OBSIDIAN GUARD WINS ON TIME',
-        title: 'TIME EXPIRED',
-        sub: 'The Marble Order ran out of time.'
-      };
-      updateHUD();
-      showToast('Time expired! Obsidian Guard wins on time.', 'warn');
-    }
-  } else {
-    state.clockBlack = Math.max(0, state.clockBlack - dt);
-    if (state.clockBlack <= 0) {
-      state.gen++;
-      state.matchResult = {
-        status: 'MARBLE ORDER WINS ON TIME',
-        title: 'TIME EXPIRED',
-        sub: 'The Obsidian Guard ran out of time.'
-      };
-      updateHUD();
-      showToast('Time expired! Marble Order wins on time.', 'warn');
-    }
-  }
-  updateClockUI();
-}
-
-export function getReplayGame(ply) {
-  if (ply === null || ply === undefined) return null;
-  const history = state.game.history();
-  if (ply >= history.length - 1) return null;
-  const replay = new Chess();
-  for (let i = 0; i <= ply; i++) {
-    if (history[i]) replay.move(history[i]);
-  }
-  return replay;
-}
-
-export function setReplayPly(ply) {
-  if (state.isAnimating) return;
-  const hist = state.game.history({ verbose: true });
-  if (hist.length === 0) {
-    state.replayPly = null;
-    state.replayGame = null;
-    return;
-  }
-  if (ply === null || ply >= hist.length - 1) {
-    state.replayPly = null;
-    state.replayGame = null;
-    const last = hist[hist.length - 1];
-    state.lastMove = last ? { from: last.from, to: last.to } : null;
-  } else {
-    state.replayPly = Math.max(-1, ply);
-    state.replayGame = getReplayGame(state.replayPly);
-    if (state.replayPly >= 0 && hist[state.replayPly]) {
-      state.lastMove = { from: hist[state.replayPly].from, to: hist[state.replayPly].to };
-    } else {
-      state.lastMove = null;
-    }
-  }
-  clearSelection();
-  syncBoardFull(scene);
-  rebuildTacticalMarkers();
-  updateHUD();
-}
-
-export function stepReplay(delta) {
-  const hist = state.game.history();
-  if (hist.length === 0) return;
-  const currentPly = state.replayPly !== null ? state.replayPly : (hist.length - 1);
-  const targetPly = currentPly + delta;
-  if (targetPly >= hist.length - 1) {
-    setReplayPly(null);
-  } else if (targetPly < -1) {
-    setReplayPly(-1);
-  } else {
-    setReplayPly(targetPly);
   }
 }

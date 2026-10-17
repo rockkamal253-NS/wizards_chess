@@ -1,8 +1,9 @@
 import { state } from './state.js';
 import { dom } from './dom.js';
 import { sfx } from './audio.js';
-import { sqToWorld, rebuildTacticalMarkers, hoverCursor } from './board.js';
-import { updateHUD, setReplayPly } from './hud.js';
+import { sqToWorld, rebuildTacticalMarkers, clearSelection, syncBoardFull, hoverCursor } from './board.js';
+import { scene } from './materials.js';
+import { updateHUD } from './hud.js';
 import { showToast } from './toast.js';
 
 // ============================================================================
@@ -118,7 +119,12 @@ export function selectPromotion(piece) {
 
 export function handleSquareClick(sq) {
   if (state.replayPly !== null) {
-    setReplayPly(null);
+    state.replayPly = null;
+    state.replayGame = null;
+    clearSelection();
+    syncBoardFull(scene);
+    rebuildTacticalMarkers();
+    updateHUD();
     return;
   }
   if (state.pendingPromotion || state.matchResult) return;

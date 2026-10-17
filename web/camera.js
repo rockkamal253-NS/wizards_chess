@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { dom } from './dom.js';
-import { undoMove, resetGame, toggleAudio, updateHUD, stepReplay } from './hud.js';
-import { showTacticalHint } from './input.js';
+import { toggleAudio, updateHUD } from './hud.js';
+import { undoMove, resetGame, stepReplay, showTacticalHint } from './commands.js';
 
 // ============================================================================
 // CAMERA PRESETS, ORBIT CONTROLS & KEYBOARD SHORTCUTS

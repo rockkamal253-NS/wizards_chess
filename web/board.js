@@ -236,3 +236,9 @@ export function spawnShatter(worldPos, colorChar, impactDir, scene) {
     state.shards.push({ mesh, vel, rotVel, baseScale, age: 0, life: 2.2 + Math.random() * 1.2 });
   }
 }
+
+export function clearSelection() {
+  state.selectedSq = null;
+  state.validMoves = [];
+  rebuildTacticalMarkers();
+}
