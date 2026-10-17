@@ -47,8 +47,18 @@
 
 - **Yes, the application was run and tested on a real machine** (Windows 11 x64, Python 3.12, Node.js 24, Chromium / SwiftShader WebGL).
 - **Test Suites Verified Green**:
-  - `python -m pytest tests -q`: 14 passed (100%).
-  - `npm test`: 31 passed (100% across all rule, promotion, error handling, and feature suites).
+  - `python -m pytest tests -q`: 18 passed (100%, including repetition history and start_fen tests).
+  - `npm test`: 36 passed (100%, including GPU parsing, strict FEN validation, startFen lifecycle, and 2-player resign).
   - `npm run lint`: 0 errors, 0 warnings.
-  - `npm run test:visual`: all 3 camera/selection baseline screenshots matched within tolerance (< 2% diff).
+  - `npm run test:visual`: all 3 camera/selection baseline screenshots matched within tolerance (< 5% diff).
   - Standalone executable smoke test: `dist/wizards_chess.exe --smoke-test` verified clean launch and asset extraction from `sys._MEIPASS`.
+
+---
+
+## 4. Post-Review Fixes Applied
+
+The 4 review patch sets (`wizards_chess_review_fixes_patches.zip`) were applied cleanly:
+1. **Toolbar Overflow & Test Hook Gating (`38aff3e`)**: Grid updated to `minmax(0, 1fr)` with wrapping top-bar items; test hooks on `window` restricted to `?wctest`; visual regression test serves UI over local HTTP.
+2. **Engine History & `start_fen` (`846399b`)**: `build_board` replays from `start_fen` and only uses the replayed board if it reproduces the target EPD, preventing bad history corruption.
+3. **FEN Validation & Two-Player Resign (`47a1020`)**: Strict FEN validation requiring exactly one king per side; records `startFen`; two-player resign forfeits the player currently on move.
+4. **Documentation Updates (`9555647`)**: Synchronized README, ARCHITECTURE, DATA_MODEL, and API_CONTRACT docs.
