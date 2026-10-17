@@ -43,6 +43,14 @@ Run linter:
 npm run lint
 ```
 
+Run the visual regression test (headless Chromium, serves `web/` over HTTP like the app does):
+```bash
+npm run test:visual                      # compare against tests/visual_baselines
+npm run test:visual -- --baseline        # regenerate baselines after an intentional visual change
+CHROMIUM_PATH=/path/to/chrome npm run test:visual   # if Playwright's own browser build is not installed
+```
+The test opens `index.html?wctest`; the `?wctest` flag exposes test hooks (`window.state`, `handleSquareClick`, ...) that the shipped app does not expose. Baselines allow a 5% pixel difference to absorb GPU/font differences between machines.
+
 ## Packaging
 
 Package as a standalone desktop executable with PyInstaller:
