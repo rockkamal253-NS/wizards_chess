@@ -39,6 +39,7 @@ import {
 } from './hud.js';
 import { initCameraControls, setCameraPreset, flipCamera } from './camera.js';
 import { saveSettings, loadSettings, applyLoadedSettings } from './settings.js';
+import { shortGpuName } from './gpu.js';
 
 // ============================================================================
 // GPU TELEMETRY DETECTION
@@ -47,11 +48,7 @@ try {
   const gl = renderer.getContext();
   const ext = gl.getExtension('WEBGL_debug_renderer_info');
   if (ext) {
-    state.gpuName =
-      String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL))
-        .replace(/\(.*?\)/g, '')
-        .slice(0, 42)
-        .trim() || 'WebGL';
+    state.gpuName = shortGpuName(String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)));
   }
 } catch (_) {}
 
@@ -306,46 +303,48 @@ requestAnimationFrame(animate);
 // ============================================================================
 // TEST HARNESS COMPATIBILITY HOOKS (ON WINDOW)
 // ============================================================================
-window.__state = state;
-window.state = state;
-window.handleSquareClick = handleSquareClick;
-window.selectPromotion = selectPromotion;
-window.showPromotionDialog = showPromotionDialog;
-window.hidePromotionDialog = hidePromotionDialog;
-window.setCameraPreset = setCameraPreset;
-window.flipCamera = flipCamera;
-window.showTacticalHint = showTacticalHint;
-window.undoMove = undoMove;
-window.resetGame = resetGame;
-window.closeModal = closeModal;
-window.toggleQuality = toggleQuality;
-window.toggleAudio = toggleAudio;
-window.toggleFull = toggleFull;
-window.openIoModal = openIoModal;
-window.closeIoModal = closeIoModal;
-window.exportFen = exportFen;
-window.exportPgn = exportPgn;
-window.importFen = importFen;
-window.resignGame = resignGame;
-window.offerDraw = offerDraw;
-window.setTimeControl = setTimeControl;
-window.tickClock = tickClock;
-window.formatClock = formatClock;
-window.saveSettings = saveSettings;
-window.loadSettings = loadSettings;
-window.applyLoadedSettings = applyLoadedSettings;
-window.setReplayPly = setReplayPly;
-window.stepReplay = stepReplay;
-window.getReplayGame = getReplayGame;
+// Test hooks are exposed only when the page is opened with ?wctest, so the shipped app adds nothing to `window`.
+if (new URLSearchParams(window.location.search).has('wctest')) {
+  window.__state = state;
+  window.state = state;
+  window.handleSquareClick = handleSquareClick;
+  window.selectPromotion = selectPromotion;
+  window.showPromotionDialog = showPromotionDialog;
+  window.hidePromotionDialog = hidePromotionDialog;
+  window.setCameraPreset = setCameraPreset;
+  window.flipCamera = flipCamera;
+  window.showTacticalHint = showTacticalHint;
+  window.undoMove = undoMove;
+  window.resetGame = resetGame;
+  window.closeModal = closeModal;
+  window.toggleQuality = toggleQuality;
+  window.toggleAudio = toggleAudio;
+  window.toggleFull = toggleFull;
+  window.openIoModal = openIoModal;
+  window.closeIoModal = closeIoModal;
+  window.exportFen = exportFen;
+  window.exportPgn = exportPgn;
+  window.importFen = importFen;
+  window.resignGame = resignGame;
+  window.offerDraw = offerDraw;
+  window.setTimeControl = setTimeControl;
+  window.tickClock = tickClock;
+  window.formatClock = formatClock;
+  window.saveSettings = saveSettings;
+  window.loadSettings = loadSettings;
+  window.applyLoadedSettings = applyLoadedSettings;
+  window.setReplayPly = setReplayPly;
+  window.stepReplay = stepReplay;
+  window.getReplayGame = getReplayGame;
 
-Object.defineProperty(window, 'camDist', {
-  get: () => state.camDist,
-  set: v => { state.camDist = v; },
-  configurable: true
-});
-Object.defineProperty(window, 'targetDist', {
-  get: () => state.targetDist,
-  set: v => { state.targetDist = v; },
-  configurable: true
-});
-
+  Object.defineProperty(window, 'camDist', {
+    get: () => state.camDist,
+    set: v => { state.camDist = v; },
+    configurable: true
+  });
+  Object.defineProperty(window, 'targetDist', {
+    get: () => state.targetDist,
+    set: v => { state.targetDist = v; },
+    configurable: true
+  });
+}

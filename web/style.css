@@ -27,6 +27,7 @@
     position: fixed; inset: 0; z-index: 10;
     pointer-events: none;
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* let the toolbar shrink to the window instead of growing to its content */
     grid-template-rows: auto 1fr auto;
     padding: 14px 18px;
     gap: 12px;
@@ -36,7 +37,7 @@
   .top-bar {
     pointer-events: auto;
     display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; flex-wrap: nowrap;
+    gap: 8px 12px; flex-wrap: wrap; /* wrap onto a second row on narrow windows; the grid pushes the rest down */
     background: var(--md-surface);
     backdrop-filter: blur(22px) saturate(165%);
     border: 1px solid var(--md-outline);
@@ -71,7 +72,7 @@
   }
 
   .nav-clusters {
-    display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; overflow-x: auto;
+    display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; justify-content: flex-end; min-width: 0;
   }
   .seg-pill {
     display: flex; align-items: center; gap: 2px;

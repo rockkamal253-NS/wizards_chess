@@ -1,7 +1,8 @@
 import { chromium } from 'playwright';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath, pathToFileURL } from 'url';
+import http from 'http';
+import { fileURLToPath } from 'url';
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
@@ -16,21 +17,42 @@ const CHROMIUM_FLAGS = [
   '--use-angle=swiftshader',
   '--use-gl=angle',
   '--enable-unsafe-swiftshader',
-  '--ignore-gpu-blocklist',
-  '--allow-file-access-from-files'
+  '--ignore-gpu-blocklist'
+  // No --allow-file-access-from-files: the app loads over HTTP (pywebview http_server=True), so the test does too.
 ];
+
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.json': 'application/json' };
+
+/** Minimal static server for web/, mirroring how pywebview serves the UI. */
+function startStaticServer() {
+  const webRoot = path.join(ROOT, 'web');
+  const server = http.createServer((req, res) => {
+    const rel = decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/^\/+/, '') || 'index.html';
+    const file = path.resolve(webRoot, rel);
+    if (!file.startsWith(webRoot + path.sep) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+      res.writeHead(404); res.end('not found'); return;
+    }
+    res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' });
+    fs.createReadStream(file).pipe(res);
+  });
+  return new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server)));
+}
 
 async function captureScreenshots(outputDir) {
   fs.mkdirSync(outputDir, { recursive: true });
 
+  const server = await startStaticServer();
   const browser = await chromium.launch({
     headless: true,
-    args: CHROMIUM_FLAGS
+    args: CHROMIUM_FLAGS,
+    // Set CHROMIUM_PATH if Playwright's expected browser build is not installed (e.g. CI images, sandboxes).
+    ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {})
   });
 
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
-    const url = pathToFileURL(path.join(ROOT, 'web', 'index.html')).href;
+    // ?wctest enables the window.* test hooks (state, handleSquareClick, camDist, ...).
+    const url = `http://127.0.0.1:${server.address().port}/index.html?wctest`;
 
     await page.goto(url, { waitUntil: 'commit' });
     // Fixed wait for Three.js scene, textures, and canvas to initialize
@@ -72,6 +94,7 @@ async function captureScreenshots(outputDir) {
     return { dist9Path, dist25Path, selectedE2Path };
   } finally {
     await browser.close();
+    server.close();
   }
 }
 
