@@ -174,6 +174,7 @@ export function resetGame() {
   state.clockWhite = state.timeControl;
   state.clockBlack = state.timeControl;
   state.game.reset();
+  state.startFen = null;
   clearSelection();
   syncBoardFull(scene);
   rebuildTacticalMarkers();
@@ -278,10 +279,23 @@ export function importFen(fenString) {
     showToast('Invalid FEN position string', 'error');
     return false;
   }
+  // chess.js silently drops pieces it cannot place (e.g. a second king), so confirm it loaded exactly what was typed.
+  if (testChess.fen().split(' ')[0] !== str.split(/\s+/)[0]) {
+    showToast('Invalid position: the piece placement could not be loaded as written', 'error');
+    return false;
+  }
+  // ...and chess.js accepts positions without exactly one king per side; the rules and the engine do not.
+  const kings = { w: 0, b: 0 };
+  for (const row of testChess.board()) for (const p of row) if (p && p.type === 'k') kings[p.color]++;
+  if (kings.w !== 1 || kings.b !== 1) {
+    showToast('Invalid position: each side needs exactly one king', 'error');
+    return false;
+  }
 
   state.gen++;
   state.matchResult = null;
   state.game.load(str);
+  state.startFen = state.game.fen();
   clearSelection();
   syncBoardFull(scene);
   rebuildTacticalMarkers();
@@ -294,16 +308,18 @@ export function importFen(fenString) {
 
 export function resignGame() {
   if (state.isAnimating || state.game.game_over() || state.matchResult) return;
-  const winner = state.humanColor === 'w' ? 'OBSIDIAN GUARD' : 'MARBLE ORDER';
+  // Against the AI the human resigns; in two-player mode the side to move does.
+  const resigning = state.aiDepth === 0 ? state.game.turn() : state.humanColor;
+  const winner = resigning === 'w' ? 'OBSIDIAN GUARD' : 'MARBLE ORDER';
   state.gen++;
   state.matchResult = {
     status: `RESIGNATION — ${winner} WINS`,
     title: 'RESIGNATION',
-    sub: `${state.humanColor === 'w' ? 'Marble Order' : 'Obsidian Guard'} surrendered the Cathedral Sanctuary.`
+    sub: `${resigning === 'w' ? 'Marble Order' : 'Obsidian Guard'} surrendered the Cathedral Sanctuary.`
   };
   clearSelection();
   updateHUD();
-  showToast('You have resigned the match', 'info');
+  showToast(state.aiDepth === 0 ? 'Match resigned' : 'You have resigned the match', 'info');
 }
 
 export function offerDraw() {

@@ -423,3 +423,40 @@ test('handleSquareClick exits replay mode and returns to live position', () => {
   assert.equal(state.replayPly, null);
   assert.equal(state.replayGame, null);
 });
+
+test('importFen rejects positions without exactly one king per side', () => {
+  for (const bad of ['8/8/8/8/8/8/8/K7 w - - 0 1', '4k3/8/8/8/8/8/8/8 w - - 0 1', '4k2k/8/8/8/8/8/8/K7 w - - 0 1']) {
+    state.game = new Chess();
+    const before = state.game.fen();
+    const gen = state.gen;
+    assert.equal(importFen(bad), false, bad);
+    assert.equal(state.game.fen(), before);
+    assert.equal(state.gen, gen);
+  }
+});
+
+test('importFen records startFen; resetGame clears it', () => {
+  state.game = new Chess();
+  state.isAnimating = false;
+  const fen = 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3';
+  assert.equal(importFen(fen), true);
+  assert.equal(state.startFen, fen);
+  state.aiDepth = 0; // keep triggerAI out of the way
+  resetGame();
+  assert.equal(state.startFen, null);
+  state.aiDepth = 2;
+});
+
+test('resignGame in two-player mode resigns the side to move', () => {
+  state.game = new Chess();
+  state.startFen = null;
+  state.aiDepth = 0;
+  state.humanColor = 'w';
+  state.matchResult = null;
+  state.isAnimating = false;
+  state.game.move('e4'); // black to move
+  resignGame();
+  assert.ok(state.matchResult.status.includes('MARBLE ORDER WINS'), state.matchResult.status);
+  state.matchResult = null;
+  state.aiDepth = 2;
+});
