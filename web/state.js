@@ -50,6 +50,7 @@ export const state = {
 
   // Telemetry & Timing
   lastTime: performance.now(),
+  maxDt: 0.05,
   frameCount: 0,
   fpsStart: performance.now(),
   gpuName: 'WebGL'

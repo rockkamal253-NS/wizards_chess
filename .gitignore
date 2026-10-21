@@ -11,3 +11,4 @@ build/
 screenshots/
 tests/visual_current/
 tests/visual_diffs/
+tests/e2e_output/

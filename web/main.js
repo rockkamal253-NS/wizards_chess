@@ -2,7 +2,7 @@ import { dom } from './dom.js';
 import { state } from './state.js';
 import { renderer, scene, camera } from './materials.js';
 import { buildCathedral } from './cathedral.js';
-import { initBoard, syncBoardFull, rebuildTacticalMarkers, spawnShatter } from './board.js';
+import { initBoard, syncBoardFull, rebuildTacticalMarkers, spawnShatter, sqToWorld } from './board.js';
 import { buildPieceMesh } from './pieces.js';
 import {
   initInput,
@@ -11,7 +11,8 @@ import {
   handleSquareClick,
   selectPromotion,
   showPromotionDialog,
-  hidePromotionDialog
+  hidePromotionDialog,
+  getSquareUnderPointer
 } from './input.js';
 import {
   updateHUD,
@@ -59,7 +60,7 @@ try {
 // ============================================================================
 function animate(now) {
   requestAnimationFrame(animate);
-  const dt = Math.min(0.05, (now - state.lastTime) / 1000);
+  const dt = Math.min(state.maxDt || 0.05, (now - state.lastTime) / 1000);
   state.lastTime = now;
   const elapsed = now * 0.001;
   tickClock(dt);
@@ -307,6 +308,44 @@ requestAnimationFrame(animate);
 // ============================================================================
 // Test hooks are exposed only when the page is opened with ?wctest, so the shipped app adds nothing to `window`.
 if (new URLSearchParams(window.location.search).has('wctest')) {
+  if (new URLSearchParams(window.location.search).has('fast')) {
+    state.maxDt = 1.0;
+  }
+
+  window.squareToScreen = (sq, height = 0, dx = 0, dz = 0) => {
+    const pos = sqToWorld(sq);
+    const p = new THREE.Vector3(pos.x + dx, pos.y + height, pos.z + dz);
+    p.project(camera);
+    return {
+      x: Math.round(((p.x + 1) * window.innerWidth) / 2),
+      y: Math.round(((-p.y + 1) * window.innerHeight) / 2)
+    };
+  };
+
+  window.findClickPoint = (sq) => {
+    const hasPiece = Boolean(state.game && state.game.get && state.game.get(sq));
+    const heights = hasPiece ? [0.6, 0.3, 1.0, 0.1, 1.4, 0.0] : [0.05, 0.0, 0.1, 0.2];
+    const offsets = [
+      [0, 0],
+      [0, 0.1], [0, -0.1],
+      [0.1, 0], [-0.1, 0],
+      [0.15, 0.15], [-0.15, -0.15],
+      [0.15, -0.15], [-0.15, 0.15]
+    ];
+    for (const h of heights) {
+      for (const [dx, dz] of offsets) {
+        const pt = window.squareToScreen(sq, h, dx, dz);
+        if (pt.x < 0 || pt.x > window.innerWidth || pt.y < 0 || pt.y > window.innerHeight) continue;
+        const elem = document.elementFromPoint(pt.x, pt.y);
+        if (elem && elem.id !== 'gl-canvas') continue;
+        if (getSquareUnderPointer(pt.x, pt.y, camera) === sq) {
+          return pt;
+        }
+      }
+    }
+    return window.squareToScreen(sq, hasPiece ? 0.5 : 0.05, 0, 0);
+  };
+
   window.__state = state;
   window.state = state;
   window.handleSquareClick = handleSquareClick;

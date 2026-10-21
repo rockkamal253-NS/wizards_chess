@@ -1,10 +1,10 @@
 import { chromium } from 'playwright';
 import path from 'path';
 import fs from 'fs';
-import http from 'http';
 import { fileURLToPath } from 'url';
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
+import { startStaticServer } from './static_server.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,27 +21,10 @@ const CHROMIUM_FLAGS = [
   // No --allow-file-access-from-files: the app loads over HTTP (pywebview http_server=True), so the test does too.
 ];
 
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.json': 'application/json' };
-
-/** Minimal static server for web/, mirroring how pywebview serves the UI. */
-function startStaticServer() {
-  const webRoot = path.join(ROOT, 'web');
-  const server = http.createServer((req, res) => {
-    const rel = decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/^\/+/, '') || 'index.html';
-    const file = path.resolve(webRoot, rel);
-    if (!file.startsWith(webRoot + path.sep) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
-      res.writeHead(404); res.end('not found'); return;
-    }
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' });
-    fs.createReadStream(file).pipe(res);
-  });
-  return new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server)));
-}
-
 async function captureScreenshots(outputDir) {
   fs.mkdirSync(outputDir, { recursive: true });
 
-  const server = await startStaticServer();
+  const server = await startStaticServer(path.join(ROOT, 'web'));
   const browser = await chromium.launch({
     headless: true,
     args: CHROMIUM_FLAGS,
