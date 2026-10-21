@@ -51,6 +51,15 @@ CHROMIUM_PATH=/path/to/chrome npm run test:visual   # if Playwright's own browse
 ```
 The test opens `index.html?wctest`; the `?wctest` flag exposes test hooks (`window.state`, `handleSquareClick`, ...) that the shipped app does not expose. Baselines allow a 5% pixel difference to absorb GPU/font differences between machines.
 
+Run the automated browser end-to-end test suite (see [docs/TEST_FLOW.md](docs/TEST_FLOW.md)):
+```bash
+npm run test:e2e                         # runs all 16 scenarios headless with reporting in tests/e2e_output/
+npm run test:e2e -- --only=boot          # run specific scenario(s) by id or name
+npm run test:e2e -- --headed --slowmo=200 # watch scenarios interactively
+npm run test:all                         # run lint, JS unit, visual regression, e2e flow, and pytest
+npm run serve                            # serve web/ locally at http://127.0.0.1:8080
+```
+
 ## Packaging
 
 Package as a standalone desktop executable with PyInstaller:
