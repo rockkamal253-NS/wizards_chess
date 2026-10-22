@@ -8,6 +8,7 @@ The next session starts here. Keep it short and current. Newest entries at the t
 - Known failing or skipped tests: None (all 18 pytests pass; 41 JS tests pass; 16/16 E2E pass; visual pass).
 
 ## Done
+- Real window check: verified packaged build `dist/wizards_chess.exe` builds via PyInstaller, passes `--smoke-test`, and launches cleanly on real display (stays open with zero stderr errors).
 - Doc accuracy: corrected `HANDOFF_NOTES.md` test counts (41 JS tests, 16 E2E scenarios) and test harness description; fixed `web/match.js` comment to specify pawn units rather than centipawns.
 - Automated browser E2E test suite (docs/TEST_FLOW.md): dependency-free static server (tests/static_server.mjs), test hooks (window.findClickPoint, window.squareToScreen, ?wctest&fast), 16 scenarios in tests/e2e_flow.mjs, fake bridge, reporting in tests/e2e_output/, npm run test:e2e, npm run test:all, verified 4 mutation checks.
 - Review fixes applied: toolbar overflow, history-aware engine, FEN validation, two-player resign, test hooks gated behind `?wctest`.
@@ -19,8 +20,7 @@ The next session starts here. Keep it short and current. Newest entries at the t
 - None.
 
 ## Next up (take the first item)
-1. **Real window check** — run `python app.py` on a machine with a display, and the packaged build, and record the result under "Verified" below.
-2. **Colour question** — owner says the look still reads lavender. Root cause unconfirmed (renderer already uses `sRGBEncoding`). Investigate only with owner approval; report findings before changing anything.
+1. **Colour question** — owner says the look still reads lavender. Root cause unconfirmed (renderer already uses `sRGBEncoding`). Investigate only with owner approval; report findings before changing anything.
 
 ## Decisions (why things are the way they are)
 - `webview.start(http_server=True)`: ES modules do not load from `file://`.
@@ -45,9 +45,10 @@ The next session starts here. Keep it short and current. Newest entries at the t
 | Check | Result | Date |
 |---|---|---|
 | `python app.py` opens and plays | verified (stays open 12s cleanly with no stderr errors via --real-app) | 2026-10-21 |
-| Packaged `.exe` starts | not yet verified | |
+| Packaged `.exe` starts | verified (builds via PyInstaller, smoke-test passes, stays open cleanly) | 2026-10-22 |
 
 ## Session log
+- 2026-10-22 — verified packaged build dist/wizards_chess.exe launches cleanly on display and passes --smoke-test — 3 pytest packaging pass, executable verified — commit.
 - 2026-10-22 — fix doc accuracy in HANDOFF_NOTES.md (test counts, static server harness) and web/match.js (pawn units) — 41 JS unit, 0 lint — commit.
 - 2026-10-21 — implemented automated browser E2E test flow (docs/TEST_FLOW.md) — 16/16 E2E pass, 41 JS unit, 18 pytest, 0 lint, 3 visual ok, 4 mutation checks verified — commit.
 - 2026-10-21 — start E2E test flow implementation (docs/TEST_FLOW.md) — baseline tests green (41 unit, 18 pytest, 0 lint, visual ok) — in progress.
