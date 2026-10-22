@@ -8,6 +8,7 @@ The next session starts here. Keep it short and current. Newest entries at the t
 - Known failing or skipped tests: None (all 18 pytests pass; 41 JS tests pass; 16/16 E2E pass; visual pass).
 
 ## Done
+- Colour & lighting calibration: eliminated lavender/violet cast across dark tiles, cathedral ashlar, and obsidian pieces. Tuned dark textures to cold graphite/slate, neutralized veins and moon reflections, and regenerated visual baselines (<0.9% match).
 - Real window check: verified packaged build `dist/wizards_chess.exe` builds via PyInstaller, passes `--smoke-test`, and launches cleanly on real display (stays open with zero stderr errors).
 - Doc accuracy: corrected `HANDOFF_NOTES.md` test counts (41 JS tests, 16 E2E scenarios) and test harness description; fixed `web/match.js` comment to specify pawn units rather than centipawns.
 - Automated browser E2E test suite (docs/TEST_FLOW.md): dependency-free static server (tests/static_server.mjs), test hooks (window.findClickPoint, window.squareToScreen, ?wctest&fast), 16 scenarios in tests/e2e_flow.mjs, fake bridge, reporting in tests/e2e_output/, npm run test:e2e, npm run test:all, verified 4 mutation checks.
@@ -20,7 +21,7 @@ The next session starts here. Keep it short and current. Newest entries at the t
 - None.
 
 ## Next up (take the first item)
-1. **Colour question** — owner says the look still reads lavender. Root cause unconfirmed (renderer already uses `sRGBEncoding`). Investigate only with owner approval; report findings before changing anything.
+- None currently pending.
 
 ## Decisions (why things are the way they are)
 - `webview.start(http_server=True)`: ES modules do not load from `file://`.
@@ -48,6 +49,7 @@ The next session starts here. Keep it short and current. Newest entries at the t
 | Packaged `.exe` starts | verified (builds via PyInstaller, smoke-test passes, stays open cleanly) | 2026-10-22 |
 
 ## Session log
+- 2026-10-22 — calibrated colour & lighting pipeline to cold Gothic slate/obsidian (eliminated lavender cast) and regenerated visual baselines — 41 JS unit, 18 pytest, visual ok (<0.9%), E2E verified — commit.
 - 2026-10-22 — verified packaged build dist/wizards_chess.exe launches cleanly on display and passes --smoke-test — 3 pytest packaging pass, executable verified — commit.
 - 2026-10-22 — fix doc accuracy in HANDOFF_NOTES.md (test counts, static server harness) and web/match.js (pawn units) — 41 JS unit, 0 lint — commit.
 - 2026-10-21 — implemented automated browser E2E test flow (docs/TEST_FLOW.md) — 16/16 E2E pass, 41 JS unit, 18 pytest, 0 lint, 3 visual ok, 4 mutation checks verified — commit.

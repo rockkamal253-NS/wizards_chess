@@ -5,11 +5,11 @@ export function buildCathedralHDRI(renderer, cg) {
   const pmrem = new THREE.PMREMGenerator(renderer);
   pmrem.compileCubemapShader();
   const envScene = new THREE.Scene();
-  envScene.background = new THREE.Color(0x0A0912);
+  envScene.background = new THREE.Color(0x08090C);
 
   const moonStrip = new THREE.Mesh(
     cg(THREE.PlaneGeometry, 18, 18),
-    new THREE.MeshBasicMaterial({ color: 0x7A92D4, side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ color: 0x8CA2C4, side: THREE.DoubleSide })
   );
   moonStrip.position.set(0, 15, 0);
   moonStrip.rotation.x = Math.PI / 2;
@@ -36,7 +36,7 @@ export function createStoneTextures(renderer, isMarble, base) {
   const cCtx = colCanvas.getContext('2d');
   const bCtx = bumpCanvas.getContext('2d');
 
-  cCtx.fillStyle = base || (isMarble ? '#DDD5C7' : '#181523');
+  cCtx.fillStyle = base || (isMarble ? '#DDD5C7' : '#14161A');
   cCtx.fillRect(0, 0, size, size);
   bCtx.fillStyle = '#808080';
   bCtx.fillRect(0, 0, size, size);
@@ -56,7 +56,7 @@ export function createStoneTextures(renderer, isMarble, base) {
     }
     cCtx.strokeStyle = isMarble
       ? `rgba(120, 110, 98, ${0.12 + Math.random() * 0.16})`
-      : `rgba(80, 70, 115, ${0.12 + Math.random() * 0.16})`;
+      : `rgba(75, 80, 90, ${0.12 + Math.random() * 0.16})`;
     cCtx.lineWidth = 1.2 + Math.random() * 2.5;
     cCtx.stroke();
 
@@ -65,7 +65,7 @@ export function createStoneTextures(renderer, isMarble, base) {
     bCtx.stroke();
   }
 
-  cCtx.strokeStyle = isMarble ? 'rgba(150,140,125,0.55)' : 'rgba(95,82,135,0.35)';
+  cCtx.strokeStyle = isMarble ? 'rgba(150,140,125,0.55)' : 'rgba(85,92,105,0.35)';
   cCtx.lineWidth = 5;
   cCtx.strokeRect(2, 2, size - 4, size - 4);
 

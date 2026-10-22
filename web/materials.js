@@ -49,8 +49,8 @@ renderer.toneMappingExposure = 0.94;
 renderer.outputEncoding = THREE.sRGBEncoding;
 
 export const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x07060C);
-scene.fog = new THREE.FogExp2(0x07060C, 0.008);
+scene.background = new THREE.Color(0x07080A);
+scene.fog = new THREE.FogExp2(0x07080A, 0.008);
 
 export const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.5, 120);
 
@@ -62,7 +62,7 @@ scene.environment = buildCathedralHDRI(renderer, cg);
 export const marbleTex = createStoneTextures(renderer, true);
 export const obsidianTex = createStoneTextures(renderer, false);
 export const tileLightTex = createStoneTextures(renderer, true, '#E6DECF');
-export const tileDarkTex = createStoneTextures(renderer, false, '#4B4563');
+export const tileDarkTex = createStoneTextures(renderer, false, '#2A2D34');
 
 export const SQ_SIZE = 1.35;
 
@@ -89,14 +89,14 @@ export const MAT_MARBLE_BRONZE = new THREE.MeshStandardMaterial({
 });
 
 export const MAT_MARBLE_TRIM = new THREE.MeshStandardMaterial({
-  color: 0x4A4356,
+  color: 0x3E424B,
   roughness: 0.38,
   metalness: 0.65
 });
 
 // Black Obsidian Faction Materials
 export const MAT_OBSIDIAN_BODY = new THREE.MeshPhysicalMaterial({
-  color: 0x1B1828,
+  color: 0x14161A,
   map: obsidianTex.map,
   bumpMap: obsidianTex.bumpMap,
   bumpScale: 0.012,
@@ -117,7 +117,7 @@ export const MAT_OBSIDIAN_CRIMSON = new THREE.MeshStandardMaterial({
 });
 
 export const MAT_OBSIDIAN_TRIM = new THREE.MeshStandardMaterial({
-  color: 0x2E2942,
+  color: 0x22252C,
   roughness: 0.30,
   metalness: 0.80
 });

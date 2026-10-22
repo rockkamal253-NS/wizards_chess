@@ -8,7 +8,7 @@ export function buildCathedral(scene) {
   const cath = new THREE.Group();
 
   // Balanced Gothic moonlight & sanctuary stone lighting (calibrated for sRGB pipeline)
-  const hemi = new THREE.HemisphereLight(0x7687B5, 0x14121A, 0.38);
+  const hemi = new THREE.HemisphereLight(0x7A88A8, 0x121418, 0.38);
   scene.add(hemi);
 
   const dirLight = new THREE.DirectionalLight(0xDCE4F0, 1.0);
@@ -28,7 +28,7 @@ export function buildCathedral(scene) {
   scene.add(dirLight);
 
   const stoneMat = new THREE.MeshStandardMaterial({
-    color: 0x171421,
+    color: 0x14161B,
     bumpMap: obsidianTex.bumpMap,
     bumpScale: 0.02,
     roughness: 0.48,
@@ -47,7 +47,7 @@ export function buildCathedral(scene) {
 
   // Carved Board Border Frame with Algebraic Coordinate Plates
   const frameMat = new THREE.MeshPhysicalMaterial({
-    color: 0x1B1726,
+    color: 0x171920,
     roughness: 0.28,
     metalness: 0.35,
     clearcoat: 0.45
@@ -68,7 +68,7 @@ export function buildCathedral(scene) {
     new THREE.Vector2(0.75, 14.1), new THREE.Vector2(1.0, 14.7), new THREE.Vector2(0, 14.7)
   ];
   const colGeo = new THREE.LatheGeometry(colPts, 24);
-  const colMat = new THREE.MeshStandardMaterial({ color: 0x242033, roughness: 0.55, metalness: 0.18 });
+  const colMat = new THREE.MeshStandardMaterial({ color: 0x20232A, roughness: 0.55, metalness: 0.18 });
 
   [-15, -7.5, 0, 7.5, 15].forEach(z => {
     [-1, 1].forEach(side => {
@@ -81,7 +81,7 @@ export function buildCathedral(scene) {
   });
 
   // Wrought-Iron Gothic Tripod Braziers
-  const ironMat = new THREE.MeshStandardMaterial({ color: 0x1F1C29, roughness: 0.4, metalness: 0.85 });
+  const ironMat = new THREE.MeshStandardMaterial({ color: 0x1C1E24, roughness: 0.4, metalness: 0.85 });
   const emberMat = new THREE.MeshBasicMaterial({ color: 0xFF4500 });
 
   state.brazierLights = [];
