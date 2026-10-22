@@ -39,7 +39,7 @@
   webview.start(http_server=True)
   ```
   This serves the `web/` directory over local HTTP (`http://127.0.0.1:<port>/`), enabling standard browser ES module resolution (`import` / `export`) without requiring an ahead-of-time bundler (such as esbuild or webpack).
-- **Test Harness Compatibility**: For headless Playwright tests running against local files, Chromium was launched with `--allow-file-access-from-files` in `tests/visual_regression.mjs`.
+- **Test Harness Compatibility**: The test harness serves `web/` over local HTTP via `tests/static_server.mjs`, matching production pywebview behavior.
 
 ---
 
@@ -48,9 +48,10 @@
 - **Yes, the application was run and tested on a real machine** (Windows 11 x64, Python 3.12, Node.js 24, Chromium / SwiftShader WebGL).
 - **Test Suites Verified Green**:
   - `python -m pytest tests -q`: 18 passed (100%, including repetition history and start_fen tests).
-  - `npm test`: 36 passed (100%, including GPU parsing, strict FEN validation, startFen lifecycle, and 2-player resign).
+  - `npm test`: 41 passed (100%, including GPU parsing, strict FEN validation, startFen lifecycle, and 2-player resign).
   - `npm run lint`: 0 errors, 0 warnings.
   - `npm run test:visual`: all 3 camera/selection baseline screenshots matched within tolerance (< 5% diff).
+  - `npm run test:e2e`: 16/16 scenarios passed (100%, full user flow automation).
   - Standalone executable smoke test: `dist/wizards_chess.exe --smoke-test` verified clean launch and asset extraction from `sys._MEIPASS`.
 
 ---

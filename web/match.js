@@ -13,7 +13,7 @@ export function formatClock(sec) {
   return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
 }
 
-/** Computes white material minus black material in centipawn units. */
+/** Computes white material minus black material in pawn units. */
 export function calculateMaterialDifference(game) {
   let wMat = 0;
   let bMat = 0;
