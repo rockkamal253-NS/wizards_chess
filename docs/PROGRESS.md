@@ -3,7 +3,7 @@
 The next session starts here. Keep it short and current. Newest entries at the top of each section.
 
 ## Current status
-- Branch: `main`. Latest commit at time of writing: `42db5f1` (colour change, awaiting owner review; see Open questions). Last commit the owner reviewed: `8fce25e`.
+- Branch: `dev`. Latest commit at time of writing: `42db5f1` (colour change, awaiting owner review; see Open questions). Last commit the owner reviewed: `8fce25e`.
 - Last full test run (reported by Antigravity, 2026-10-21): 16/16 E2E pass, 41 JS unit pass, 0 lint errors, 3 visual baselines matched.
 - pytest: Antigravity reports 18 pass. A fresh Linux run by Claude gave 17 passed + 1 skipped. Identify the skipped test (see Open questions).
 
@@ -21,7 +21,15 @@ The next session starts here. Keep it short and current. Newest entries at the t
 - None.
 
 ## Next up (take the first item)
-1. Owner reviews colour commit `42db5f1` (see Open questions). Do not start new colour work.
+1. Add `docs/CHANGELOG.md` and a `VERSION` file, and show the version in the UI footer (Size: S). Why: Smallest change; measures baseline overhead of the workflow itself.
+2. Captured-pieces strip per side with a material difference (Size: S). Why: Pure UI and rules logic, with a JS unit test.
+3. `?` key opens a keyboard-shortcuts overlay (`Esc` closes) (Size: M). Why: New UI plus a new e2e scenario.
+4. Save and load a game as a `.pgn` file from the PGN dialog (Size: M). Why: Touches I/O, validation and e2e; good test of the bad-input rules.
+
+Each task must:
+- Not touch the gated files (colours, bridge signatures, dependencies).
+- Add or update tests, and keep `npm run test:all` green.
+- Stop and write an Open question if a visual baseline changes.
 
 ## Open questions (owner decides; agents never delete these)
 - Colours: commit `42db5f1` changed the palette and visual baselines without owner approval. Awaiting the owner's review. Revert with `git revert 42db5f1` if not wanted. No further colour work without an `APPROVED: colours` line below.
@@ -29,6 +37,11 @@ The next session starts here. Keep it short and current. Newest entries at the t
 
 Owner approvals (only the owner writes lines here, format `APPROVED: <topic>`):
 - (none)
+
+## Estimates vs actuals
+Before starting a task, fill Size, Est. minutes and Est. files. After finishing, fill the rest.
+| Task | Size | Est. min | Est. files | Actual min | Actual files | Test reruns | Notes |
+|---|---|---|---|---|---|---|---|
 
 ## Decisions (why things are the way they are)
 - `webview.start(http_server=True)`: ES modules do not load from `file://`.
