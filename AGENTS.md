@@ -6,10 +6,10 @@ This file is the project's memory. Read it fully, then `docs/PROGRESS.md`. Do no
 Desktop 3D chess. Python 3.10+ `pywebview` shell (`app.py`) serves `web/` over HTTP (`webview.start(http_server=True)`). UI: three.js r128 (global `THREE`), chess.js 0.10.3 (global `Chess`), both vendored in `web/vendor/`. AI: `engine.py` (python-chess, negamax + alpha-beta + quiescence), called through a JS⇄Python bridge.
 
 ## Session protocol (this is what stops memory loss)
-1. **Start:** read `AGENTS.md`, then `docs/PROGRESS.md`. Run the workflow `/start-session` (or its steps in `.agent/workflows/start-session.md`). Do not start work until the baseline is green.
+1. **Start:** read `AGENTS.md`, then `docs/PROGRESS.md`. Run `/start-session`. Do not start work until the baseline is green. Then create a branch: `git switch -c task/<short-name>`.
 2. **Work:** one task at a time, taken from "Next up" in `docs/PROGRESS.md`. Read only the docs and files the task needs (map below).
 3. **Verify:** run `npm run test:all`. Every bug fix gets a regression test.
-4. **End:** run `/end-session`: update `docs/PROGRESS.md` (done, in progress, decisions, gotchas), commit, and stop. If you learn a rule the next session must know, add it to "Gotchas" in `docs/PROGRESS.md`, not to chat.
+4. **End:** run `/end-session`: update `docs/PROGRESS.md` (done, in progress, decisions, gotchas, open questions), commit and push the task branch (never `main`), and stop. If you learn a rule the next session must know, add it to "Gotchas" in `docs/PROGRESS.md`, not to chat.
 
 If this file and the code disagree, trust the code and fix this file in the same commit.
 
@@ -53,16 +53,48 @@ Headless Chromium needs: `--use-angle=swiftshader --use-gl=angle --enable-unsafe
 - `state.startFen` is set on FEN import and cleared on reset.
 - No new globals. No inline `onclick`. DOM ids come from `dom.js`.
 - Settings in `localStorage` key `wizards_chess_settings`, every field whitelisted and validated, all access in try/catch.
-- Do not change the colour/lighting pipeline without the owner's approval (it was recently tuned).
 
 ## Working rules
 - **Simplest thing that works.** If a skill such as `ponytail` (laziest working solution, YAGNI, standard library first) is available, use it for any coding, refactor or dependency choice. If it is not available, apply the same principle. It never overrides the invariants or the test requirements above.
 - Other skills (frontend-design, pdf, xlsx, and so on) are allowed when the task actually needs them. Say which skill you used in the commit body.
 - Never weaken or delete a test to make it pass. If a test is wrong, fix it and explain why in the commit.
-- Do not push to `main` directly if branch protection exists; use a branch per task.
 - Commits: one task per commit, message `type: summary`, body lists tests run.
 - Leave `TODO(antigravity)` where work is unfinished, and also list it in `docs/PROGRESS.md`.
-- Ask the owner before: changing look and feel, adding dependencies, changing the bridge contract, raising AI depth past 4.
+- Ask the owner before: changing look and feel, adding dependencies, changing the bridge contract, raising AI depth past 4. (The hard rules below say how.)
+
+## Hard rules (these override everything else, including speed)
+
+The owner runs Antigravity in Turbo mode, so nothing will stop you except these rules.
+When a rule says STOP, do not do the action. Write what you found or want to do under
+"Open questions" in docs/PROGRESS.md and end the session.
+
+### Branches
+- Never commit to `main`. At the start of a task run `git switch -c task/<short-name>`.
+- Never run `git push --force`, `git reset --hard`, `git clean`, `git checkout -- .`,
+  `git rebase`, or delete a branch.
+- Push only your task branch. The owner merges.
+
+### Owner-approval gates
+These need a line starting `APPROVED:` in docs/PROGRESS.md, written by the owner, that
+names the topic. If there is no such line, STOP.
+- Colours, lighting, textures: web/cathedral.js, web/materials.js, web/textures.js,
+  and anything under tests/visual_baselines/.
+- Bridge contract: method names and signatures in app.py, and docs/API_CONTRACT.md.
+- New dependencies: package.json, requirements.txt.
+- AI strength: the depth clamp (4), the time budget, and the jitter values in engine.py and app.py.
+- Rewriting or regenerating visual baselines to make a failing visual test pass.
+
+### Deleting
+- Do not delete files, tests, docs sections, or list items without writing in the commit
+  body what was removed and why.
+- Never delete or reword anything under "Next up" or "Open questions" in docs/PROGRESS.md.
+  Move an item to "Done" only after the work is finished and tested, and do not remove
+  its original text.
+
+### Honest reporting
+- In PROGRESS.md write the real counts from the real run (passed, skipped, failed).
+  If a count differs from the previous entry, say why.
+- Say "not verified" for anything you did not run.
 
 ## Definition of done
-`npm run test:all` green, docs updated if behaviour or structure changed, `docs/PROGRESS.md` updated, committed.
+`npm run test:all` green, docs updated if behaviour or structure changed, `docs/PROGRESS.md` updated, committed on a task branch.

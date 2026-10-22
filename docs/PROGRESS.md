@@ -3,12 +3,12 @@
 The next session starts here. Keep it short and current. Newest entries at the top of each section.
 
 ## Current status
-- Branch: `main`. Last known good commit: `8fce25e`.
-- Last full test run (`npm run test:all`): 2026-10-21, 16/16 E2E pass, 41 JS unit pass, 18 pytest pass, 0 lint errors, 3 visual baselines matched (<1.1%).
-- Known failing or skipped tests: None (all 18 pytests pass; 41 JS tests pass; 16/16 E2E pass; visual pass).
+- Branch: `main`. Latest commit at time of writing: `42db5f1` (colour change, awaiting owner review; see Open questions). Last commit the owner reviewed: `8fce25e`.
+- Last full test run (reported by Antigravity, 2026-10-21): 16/16 E2E pass, 41 JS unit pass, 0 lint errors, 3 visual baselines matched.
+- pytest: Antigravity reports 18 pass. A fresh Linux run by Claude gave 17 passed + 1 skipped. Identify the skipped test (see Open questions).
 
 ## Done
-- Colour & lighting calibration: eliminated lavender/violet cast across dark tiles, cathedral ashlar, and obsidian pieces. Tuned dark textures to cold graphite/slate, neutralized veins and moon reflections, and regenerated visual baselines (<0.9% match).
+- Colour & lighting calibration: eliminated lavender/violet cast across dark tiles, cathedral ashlar, and obsidian pieces. Tuned dark textures to cold graphite/slate, neutralized veins and moon reflections, and regenerated visual baselines (<0.9% match). (made without owner approval, see Open questions)
 - Real window check: verified packaged build `dist/wizards_chess.exe` builds via PyInstaller, passes `--smoke-test`, and launches cleanly on real display (stays open with zero stderr errors).
 - Doc accuracy: corrected `HANDOFF_NOTES.md` test counts (41 JS tests, 16 E2E scenarios) and test harness description; fixed `web/match.js` comment to specify pawn units rather than centipawns.
 - Automated browser E2E test suite (docs/TEST_FLOW.md): dependency-free static server (tests/static_server.mjs), test hooks (window.findClickPoint, window.squareToScreen, ?wctest&fast), 16 scenarios in tests/e2e_flow.mjs, fake bridge, reporting in tests/e2e_output/, npm run test:e2e, npm run test:all, verified 4 mutation checks.
@@ -21,7 +21,14 @@ The next session starts here. Keep it short and current. Newest entries at the t
 - None.
 
 ## Next up (take the first item)
-- None currently pending.
+1. Owner reviews colour commit `42db5f1` (see Open questions). Do not start new colour work.
+
+## Open questions (owner decides; agents never delete these)
+- Colours: commit `42db5f1` changed the palette and visual baselines without owner approval. Awaiting the owner's review. Revert with `git revert 42db5f1` if not wanted. No further colour work without an `APPROVED: colours` line below.
+- Test count: this file previously said 18 pytest pass, but a fresh Linux run gives 17 passed + 1 skipped. Confirm which test is skipped and on which platform.
+
+Owner approvals (only the owner writes lines here, format `APPROVED: <topic>`):
+- (none)
 
 ## Decisions (why things are the way they are)
 - `webview.start(http_server=True)`: ES modules do not load from `file://`.
@@ -45,13 +52,13 @@ The next session starts here. Keep it short and current. Newest entries at the t
 ## Verified on real hardware
 | Check | Result | Date |
 |---|---|---|
-| `python app.py` opens and plays | verified (stays open 12s cleanly with no stderr errors via --real-app) | 2026-10-21 |
-| Packaged `.exe` starts | verified (builds via PyInstaller, smoke-test passes, stays open cleanly) | 2026-10-22 |
+| `python app.py` opens and plays | verified (stays open 12s cleanly with no stderr errors via --real-app). Reported by Antigravity, not independently verified. | 2026-10-21 |
+| Packaged `.exe` starts | verified (builds via PyInstaller, smoke-test passes, stays open cleanly). Reported by Antigravity, not independently verified. | 2026-10-22 |
 
 ## Session log
-- 2026-10-22 — calibrated colour & lighting pipeline to cold Gothic slate/obsidian (eliminated lavender cast) and regenerated visual baselines — 41 JS unit, 18 pytest, visual ok (<0.9%), E2E verified — commit.
-- 2026-10-22 — verified packaged build dist/wizards_chess.exe launches cleanly on display and passes --smoke-test — 3 pytest packaging pass, executable verified — commit.
-- 2026-10-22 — fix doc accuracy in HANDOFF_NOTES.md (test counts, static server harness) and web/match.js (pawn units) — 41 JS unit, 0 lint — commit.
-- 2026-10-21 — implemented automated browser E2E test flow (docs/TEST_FLOW.md) — 16/16 E2E pass, 41 JS unit, 18 pytest, 0 lint, 3 visual ok, 4 mutation checks verified — commit.
-- 2026-10-21 — start E2E test flow implementation (docs/TEST_FLOW.md) — baseline tests green (41 unit, 18 pytest, 0 lint, visual ok) — in progress.
-Add one line per session: `YYYY-MM-DD — what changed — tests run — commit`.
+Add one line per session, newest first: `YYYY-MM-DD — what changed — tests run — commit`.
+- 2026-10-22 — calibrated colour & lighting pipeline to cold Gothic slate/obsidian (eliminated lavender cast) and regenerated visual baselines (without owner approval, see Open questions) — 41 JS unit, 18 pytest reported, visual ok (<0.9%), E2E verified — commit 42db5f1.
+- 2026-10-22 — verified packaged build dist/wizards_chess.exe launches cleanly on display and passes --smoke-test — 3 pytest packaging pass, executable verified — commit 918bb5f.
+- 2026-10-22 — fix doc accuracy in HANDOFF_NOTES.md (test counts, static server harness) and web/match.js (pawn units) — 41 JS unit, 0 lint — commit 448c6d2.
+- 2026-10-21 — implemented automated browser E2E test flow (docs/TEST_FLOW.md) — 16/16 E2E pass, 41 JS unit, 18 pytest, 0 lint, 3 visual ok, 4 mutation checks verified — commits b75c16b, 8fce25e, c23ffaa.
+- 2026-10-21 — started E2E test flow implementation (docs/TEST_FLOW.md) — baseline tests green (41 unit, 18 pytest, 0 lint, visual ok) — done.
