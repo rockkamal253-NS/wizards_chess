@@ -6,7 +6,7 @@ This file is the project's memory. Read it fully, then `docs/PROGRESS.md`. Do no
 Desktop 3D chess. Python 3.10+ `pywebview` shell (`app.py`) serves `web/` over HTTP (`webview.start(http_server=True)`). UI: three.js r128 (global `THREE`), chess.js 0.10.3 (global `Chess`), both vendored in `web/vendor/`. AI: `engine.py` (python-chess, negamax + alpha-beta + quiescence), called through a JS⇄Python bridge.
 
 ## Session protocol (this is what stops memory loss)
-1. **Start:** read `AGENTS.md`, then `docs/PROGRESS.md`. Run `/start-session`. Do not start work until the baseline is green. Then create a branch: `git switch -c task/<short-name>`.
+1. **Start:** read `AGENTS.md`, then `docs/PROGRESS.md`. Run `/start-session`. Do not start work until the baseline is green. Start every task from dev: `git switch dev && git pull && git switch -c task/<short-name>`.
 2. **Work:** one task at a time, taken from "Next up" in `docs/PROGRESS.md`. Read only the docs and files the task needs (map below).
 3. **Verify:** run `npm run test:all`. Every bug fix gets a regression test.
 4. **End:** run `/end-session`: update `docs/PROGRESS.md` (done, in progress, decisions, gotchas, open questions), commit and push the task branch (never `main`), and stop. If you learn a rule the next session must know, add it to "Gotchas" in `docs/PROGRESS.md`, not to chat.
@@ -69,10 +69,11 @@ When a rule says STOP, do not do the action. Write what you found or want to do 
 "Open questions" in docs/PROGRESS.md and end the session.
 
 ### Branches
-- Never commit to `main`. At the start of a task run `git switch -c task/<short-name>`.
+- Never commit to `main` or `dev`. Start every task from dev:
+  `git switch dev && git pull && git switch -c task/<short-name>`.
 - Never run `git push --force`, `git reset --hard`, `git clean`, `git checkout -- .`,
   `git rebase`, or delete a branch.
-- Push only your task branch. The owner merges.
+- Push only your task branch. The owner merges it into `dev`. Only the owner merges `dev` into `main`, once, at the final version.
 
 ### Owner-approval gates
 These need a line starting `APPROVED:` in docs/PROGRESS.md, written by the owner, that
@@ -95,6 +96,7 @@ names the topic. If there is no such line, STOP.
 - In PROGRESS.md write the real counts from the real run (passed, skipped, failed).
   If a count differs from the previous entry, say why.
 - Say "not verified" for anything you did not run.
+- In the estimates and session logs: record the real start and end time (date) in the log; count actual files from `git diff --stat`; count test reruns honestly, including failed runs.
 
 ## Definition of done
 `npm run test:all` green, docs updated if behaviour or structure changed, `docs/PROGRESS.md` updated, committed on a task branch.

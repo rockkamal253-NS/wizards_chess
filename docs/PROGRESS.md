@@ -3,11 +3,13 @@
 The next session starts here. Keep it short and current. Newest entries at the top of each section.
 
 ## Current status
-- Branch: `main`. Latest commit at time of writing: `42db5f1` (colour change, awaiting owner review; see Open questions). Last commit the owner reviewed: `8fce25e`.
-- Last full test run (reported by Antigravity, 2026-10-21): 16/16 E2E pass, 41 JS unit pass, 0 lint errors, 3 visual baselines matched.
+- Branch: `dev`. Latest commit at time of writing: `42db5f1` (colour change, awaiting owner review; see Open questions). Last commit the owner reviewed: `8fce25e`.
+- Last full test run (reported by Antigravity, 2026-10-25): 41 JS unit pass, 18 pytest pass, 0 lint errors, 3 visual baselines matched (<0.9%).
+- CI (GitHub Actions): green on task/fix-ci (run 40178964782: ESLint, 41 JS unit tests, and 18 Python tests all passed on ubuntu-latest).
 - pytest: Antigravity reports 18 pass. A fresh Linux run by Claude gave 17 passed + 1 skipped. Identify the skipped test (see Open questions).
 
 ## Done
+- Fix CI (Size: S). `CI / test` has failed on every run since 2026-10-16: `npm test` uses `node --test "tests/*.test.mjs"`, and CI runs Node 20, which cannot expand that glob. Change `node-version` to `'22'` in `.github/workflows/ci.yml`, push the task branch, and confirm `CI / test` is green. The Python step has never run in CI, so report separately if it then fails; do not skip or weaken any test. (Verified: CI run 40178964782 passed all steps including 18 Python tests).
 - Colour & lighting calibration: eliminated lavender/violet cast across dark tiles, cathedral ashlar, and obsidian pieces. Tuned dark textures to cold graphite/slate, neutralized veins and moon reflections, and regenerated visual baselines (<0.9% match). (made without owner approval, see Open questions)
 - Real window check: verified packaged build `dist/wizards_chess.exe` builds via PyInstaller, passes `--smoke-test`, and launches cleanly on real display (stays open with zero stderr errors).
 - Doc accuracy: corrected `HANDOFF_NOTES.md` test counts (41 JS tests, 16 E2E scenarios) and test harness description; fixed `web/match.js` comment to specify pawn units rather than centipawns.
@@ -21,14 +23,30 @@ The next session starts here. Keep it short and current. Newest entries at the t
 - None.
 
 ## Next up (take the first item)
-1. Owner reviews colour commit `42db5f1` (see Open questions). Do not start new colour work.
+0. (Owner action, not an agent task: skip to item 1.) Owner reviews colour commit `42db5f1` (see Open questions). Do not start new colour work.
+1. Add `docs/CHANGELOG.md` and a `VERSION` file, and show the version in the UI footer (Size: S). Why: Smallest change; measures baseline overhead of the workflow itself.
+2. Captured-pieces strip per side with a material difference (Size: S). Why: Pure UI and rules logic, with a JS unit test.
+3. `?` key opens a keyboard-shortcuts overlay (`Esc` closes) (Size: M). Why: New UI plus a new e2e scenario.
+4. Save and load a game as a `.pgn` file from the PGN dialog (Size: M). Why: Touches I/O, validation and e2e; good test of the bad-input rules.
+
+Each task must:
+- Not touch the gated files (colours, bridge signatures, dependencies).
+- Add or update tests, and keep `npm run test:all` green.
+- Stop and write an Open question if a visual baseline changes.
 
 ## Open questions (owner decides; agents never delete these)
 - Colours: commit `42db5f1` changed the palette and visual baselines without owner approval. Awaiting the owner's review. Revert with `git revert 42db5f1` if not wanted. No further colour work without an `APPROVED: colours` line below.
+- CI: `CI / test` has failed on every run since 2026-10-16 (cause: Node 20 vs the glob in `npm test`; the Python step never ran). Task 1 fixes it. Until then, a red CI on a docs-only branch is not caused by that branch.
 - Test count: this file previously said 18 pytest pass, but a fresh Linux run gives 17 passed + 1 skipped. Confirm which test is skipped and on which platform.
 
 Owner approvals (only the owner writes lines here, format `APPROVED: <topic>`):
 - (none)
+
+## Estimates vs actuals
+Before starting a task, fill Size, Est. minutes and Est. files. After finishing, fill the rest.
+| Task | Size | Est. min | Est. files | Actual min | Actual files | Test reruns | Notes |
+|---|---|---|---|---|---|---|---|
+| Fix CI | S | 10 | 1 | 5 | 2 | 0 | Node 22 in ci.yml. GitHub Actions run 40178964782 passed all JS and Python tests. Start 2026-10-25 11:58, End 12:03. |
 
 ## Decisions (why things are the way they are)
 - `webview.start(http_server=True)`: ES modules do not load from `file://`.
@@ -38,6 +56,7 @@ Owner approvals (only the owner writes lines here, format `APPROVED: <topic>`):
 - Automated E2E tests run in isolated browser contexts with fake Python bridge injected and ?wctest&fast animation acceleration.
 
 ## Gotchas (add every surprise here)
+- `npm test` uses a glob in `node --test`, which needs Node 22+. Node 20 fails with "Could not find tests/*.test.mjs". CI was set to Node 20 and has been red because of it.
 - Ensure all browser contexts are explicitly closed between scenarios so WebGL resources / SwiftShader workers do not leak or stall subsequent page loads.
 - R confirmation prompt (`PRESS R AGAIN TO RESET`) only activates when a game has history (`history.length > 0`); at start position it resets immediately.
 - `settings.js` uses storage key `'wizards_chess_settings'` (not `wc_settings_v1`).
@@ -57,6 +76,7 @@ Owner approvals (only the owner writes lines here, format `APPROVED: <topic>`):
 
 ## Session log
 Add one line per session, newest first: `YYYY-MM-DD — what changed — tests run — commit`.
+- 2026-10-25 — fix CI by upgrading Node.js from 20 to 22 in .github/workflows/ci.yml — 41 JS unit, 18 pytest, 3 visual ok locally; CI run 40178964782 passed all steps (lint, 41 JS unit, 18 pytest) — commit 6ab0929.
 - 2026-10-22 — calibrated colour & lighting pipeline to cold Gothic slate/obsidian (eliminated lavender cast) and regenerated visual baselines (without owner approval, see Open questions) — 41 JS unit, 18 pytest reported, visual ok (<0.9%), E2E verified — commit 42db5f1.
 - 2026-10-22 — verified packaged build dist/wizards_chess.exe launches cleanly on display and passes --smoke-test — 3 pytest packaging pass, executable verified — commit 918bb5f.
 - 2026-10-22 — fix doc accuracy in HANDOFF_NOTES.md (test counts, static server harness) and web/match.js (pawn units) — 41 JS unit, 0 lint — commit 448c6d2.
