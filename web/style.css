@@ -212,6 +212,10 @@
     background: rgba(255, 255, 255, 0.08); color: var(--md-text);
     margin: 0 2px;
   }
+  .version-tag {
+    font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace; font-size: 0.73rem;
+    color: var(--md-muted); white-space: nowrap;
+  }
   .telemetry {
     font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace; font-size: 0.73rem;
     color: var(--md-gold); white-space: nowrap;

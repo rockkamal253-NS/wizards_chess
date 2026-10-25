@@ -21,6 +21,7 @@ export const dom = {
   get muteBtn() { return document.getElementById('mute-btn'); },
   get qualityBtn() { return document.getElementById('quality-btn'); },
   get telemetry() { return document.getElementById('telemetry'); },
+  get appVersion() { return document.getElementById('app-version'); },
   get toastContainer() { return document.getElementById('toast-container'); },
   get aiGroup() { return document.getElementById('ai-group'); },
   get sideGroup() { return document.getElementById('side-group'); },

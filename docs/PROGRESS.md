@@ -4,11 +4,12 @@ The next session starts here. Keep it short and current. Newest entries at the t
 
 ## Current status
 - Branch: `dev`. Latest commit at time of writing: `42db5f1` (colour change, awaiting owner review; see Open questions). Last commit the owner reviewed: `8fce25e`.
-- Last full test run (reported by Antigravity, 2026-10-25): 41 JS unit pass, 18 pytest pass, 0 lint errors, 3 visual baselines matched (<0.9%).
+- Last full test run (reported by Antigravity, 2026-10-25): 44 JS unit pass, 18 pytest pass, 0 lint errors, 3 visual baselines matched (<0.9%).
 - CI (GitHub Actions): green on task/fix-ci (run 40178964782: ESLint, 41 JS unit tests, and 18 Python tests all passed on ubuntu-latest).
 - pytest: Antigravity reports 18 pass. A fresh Linux run by Claude gave 17 passed + 1 skipped. Identify the skipped test (see Open questions).
 
 ## Done
+- Add `docs/CHANGELOG.md` and a `VERSION` file, and show the version in the UI footer (Size: S). Added `VERSION` at repo root (`0.1.0`), `docs/CHANGELOG.md` following Keep a Changelog, `#app-version` in the UI footer, and unit tests in `tests/test_version.test.mjs`. (44 JS tests, 18 pytest, visual ok).
 - Fix CI (Size: S). `CI / test` has failed on every run since 2026-10-16: `npm test` uses `node --test "tests/*.test.mjs"`, and CI runs Node 20, which cannot expand that glob. Change `node-version` to `'22'` in `.github/workflows/ci.yml`, push the task branch, and confirm `CI / test` is green. The Python step has never run in CI, so report separately if it then fails; do not skip or weaken any test. (Verified: CI run 40178964782 passed all steps including 18 Python tests).
 - Colour & lighting calibration: eliminated lavender/violet cast across dark tiles, cathedral ashlar, and obsidian pieces. Tuned dark textures to cold graphite/slate, neutralized veins and moon reflections, and regenerated visual baselines (<0.9% match). (made without owner approval, see Open questions)
 - Real window check: verified packaged build `dist/wizards_chess.exe` builds via PyInstaller, passes `--smoke-test`, and launches cleanly on real display (stays open with zero stderr errors).
@@ -24,10 +25,9 @@ The next session starts here. Keep it short and current. Newest entries at the t
 
 ## Next up (take the first item)
 0. (Owner action, not an agent task: skip to item 1.) Owner reviews colour commit `42db5f1` (see Open questions). Do not start new colour work.
-1. Add `docs/CHANGELOG.md` and a `VERSION` file, and show the version in the UI footer (Size: S). Why: Smallest change; measures baseline overhead of the workflow itself.
-2. Captured-pieces strip per side with a material difference (Size: S). Why: Pure UI and rules logic, with a JS unit test.
-3. `?` key opens a keyboard-shortcuts overlay (`Esc` closes) (Size: M). Why: New UI plus a new e2e scenario.
-4. Save and load a game as a `.pgn` file from the PGN dialog (Size: M). Why: Touches I/O, validation and e2e; good test of the bad-input rules.
+1. Captured-pieces strip per side with a material difference (Size: S). Why: Pure UI and rules logic, with a JS unit test.
+2. `?` key opens a keyboard-shortcuts overlay (`Esc` closes) (Size: M). Why: New UI plus a new e2e scenario.
+3. Save and load a game as a `.pgn` file from the PGN dialog (Size: M). Why: Touches I/O, validation and e2e; good test of the bad-input rules.
 
 Each task must:
 - Not touch the gated files (colours, bridge signatures, dependencies).
@@ -37,7 +37,9 @@ Each task must:
 ## Open questions (owner decides; agents never delete these)
 - Colours: commit `42db5f1` changed the palette and visual baselines without owner approval. Awaiting the owner's review. Revert with `git revert 42db5f1` if not wanted. No further colour work without an `APPROVED: colours` line below.
 - CI: `CI / test` has failed on every run since 2026-10-16 (cause: Node 20 vs the glob in `npm test`; the Python step never ran). Task 1 fixes it. Until then, a red CI on a docs-only branch is not caused by that branch.
+  RESOLVED 2026-10-25: Node 22 enabled in ci.yml; GitHub Actions run 40178964782 passed all steps (lint, 41 JS unit, 18 pytest).
 - Test count: this file previously said 18 pytest pass, but a fresh Linux run gives 17 passed + 1 skipped. Confirm which test is skipped and on which platform.
+  RESOLVED 2026-10-25: In GitHub Actions (Ubuntu/Linux) all 18 pytest tests passed cleanly (0 skipped). All 18 tests pass on both Windows and Linux.
 
 Owner approvals (only the owner writes lines here, format `APPROVED: <topic>`):
 - (none)
@@ -47,6 +49,7 @@ Before starting a task, fill Size, Est. minutes and Est. files. After finishing,
 | Task | Size | Est. min | Est. files | Actual min | Actual files | Test reruns | Notes |
 |---|---|---|---|---|---|---|---|
 | Fix CI | S | 10 | 1 | 5 | 2 | 0 | Node 22 in ci.yml. GitHub Actions run 40178964782 passed all JS and Python tests. Start 2026-10-25 11:58, End 12:03. |
+| CHANGELOG + VERSION + footer | S | 15 | 4 | 23 | 7 | 1 | Created VERSION (0.1.0), docs/CHANGELOG.md, tests/test_version.test.mjs, added #app-version to footer. All 44 JS unit tests, 18 pytest, and 3 visual baselines pass. Start 2026-10-25 12:15, End 12:38. |
 
 ## Decisions (why things are the way they are)
 - `webview.start(http_server=True)`: ES modules do not load from `file://`.
@@ -76,6 +79,7 @@ Before starting a task, fill Size, Est. minutes and Est. files. After finishing,
 
 ## Session log
 Add one line per session, newest first: `YYYY-MM-DD — what changed — tests run — commit`.
+- 2026-10-25 — add docs/CHANGELOG.md, VERSION file (0.1.0), and show version in UI footer — 44 JS unit, 18 pytest, 3 visual ok (<0.9%) — commit task/changelog-version.
 - 2026-10-25 — fix CI by upgrading Node.js from 20 to 22 in .github/workflows/ci.yml — 41 JS unit, 18 pytest, 3 visual ok locally; CI run 40178964782 passed all steps (lint, 41 JS unit, 18 pytest) — commit 6ab0929.
 - 2026-10-22 — calibrated colour & lighting pipeline to cold Gothic slate/obsidian (eliminated lavender cast) and regenerated visual baselines (without owner approval, see Open questions) — 41 JS unit, 18 pytest reported, visual ok (<0.9%), E2E verified — commit 42db5f1.
 - 2026-10-22 — verified packaged build dist/wizards_chess.exe launches cleanly on display and passes --smoke-test — 3 pytest packaging pass, executable verified — commit 918bb5f.
